@@ -1,0 +1,8 @@
+{
+  "name": "Shibganj Islamic Academy",
+  "description": "শিবগঞ্জ ইসলামী একাডেমী (sia.edu.bd) - একটি পূর্ণাঙ্গ আধুনিক এবং ইসলামী শিক্ষা প্রতিষ্ঠান।",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
