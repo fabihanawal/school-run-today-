@@ -5,72 +5,93 @@ import { UserRole } from '../types';
 
 interface LoginProps {
   setRole: (role: UserRole) => void;
+  setCurrentUser: (user: any) => void;
 }
 
-const Login: React.FC<LoginProps> = ({ setRole }) => {
-  const [username, setUsername] = useState('');
+const Login: React.FC<LoginProps> = ({ setRole, setCurrentUser }) => {
+  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'admin123') {
+    
+    // Admin Login Logic
+    if (id === 'admin' && password === 'admin123') {
       setRole(UserRole.ADMIN);
+      setCurrentUser({ name: 'System Admin', id: 'admin' });
       navigate('/admin');
+      return;
+    }
+
+    // Student Login Logic (Simulating checking the database)
+    const studentDb = JSON.parse(localStorage.getItem('sia_students_db') || '[]');
+    const student = studentDb.find((s: any) => s.id === id);
+
+    if (student) {
+      // In a real app, we would verify a password here
+      setRole(UserRole.STUDENT);
+      setCurrentUser(student);
+      navigate('/student-profile');
+    } else if (id === '124611') { // Demo Student
+      const demoStudent = {
+        id: '124611',
+        name: 'মোঃ হাসান আলি',
+        class: '১০ম',
+        roll: '১০১',
+        guardianPhone: '০১৭১xxxxxxx',
+        results: []
+      };
+      setRole(UserRole.STUDENT);
+      setCurrentUser(demoStudent);
+      navigate('/student-profile');
     } else {
-      alert('ভুল ইউজারনেম বা পাসওয়ার্ড। দয়া করে সঠিক তথ্য দিন।');
+      alert('ভুল আইডি বা পাসওয়ার্ড। ছাত্র আইডি দিয়ে চেষ্টা করুন।');
     }
   };
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white p-10 rounded-3xl shadow-2xl border border-gray-100">
-        <div className="text-center mb-8">
-          <div className="bg-emerald-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
+      <div className="max-w-md w-full bg-white p-10 rounded-[40px] shadow-2xl border border-gray-100">
+        <div className="text-center mb-10">
+          <div className="bg-emerald-100 w-24 h-24 rounded-[32px] flex items-center justify-center mx-auto mb-6 transform -rotate-6 shadow-inner">
+            <i className="fas fa-user-graduate text-4xl text-emerald-600"></i>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">অ্যাডমিন লগইন</h2>
-          <p className="text-gray-500 text-sm mt-1">আপনার অ্যাকাউন্ট অ্যাক্সেস করতে লগইন করুন</p>
+          <h2 className="text-3xl font-black text-gray-800">লগইন করুন</h2>
+          <p className="text-gray-400 font-bold text-sm mt-2 uppercase tracking-widest">Student & Admin Portal</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">ইউজারনেম</label>
+            <label className="block text-xs font-black text-gray-500 mb-2 uppercase ml-1">আইডি নম্বর / ইউজারনেম</label>
             <input 
               type="text" 
-              className="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 outline-none focus:ring-2 focus:ring-emerald-500"
-              placeholder="admin"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              className="w-full p-5 rounded-3xl bg-gray-50 border border-gray-100 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all text-lg font-bold"
+              placeholder="যেমন: 124611"
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+              required
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">পাসওয়ার্ড</label>
+            <label className="block text-xs font-black text-gray-500 mb-2 uppercase ml-1">পাসওয়ার্ড</label>
             <input 
               type="password" 
-              className="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full p-5 rounded-3xl bg-gray-50 border border-gray-100 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all text-lg font-bold"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-gray-600">
-              <input type="checkbox" className="rounded text-emerald-600" /> আমাকে মনে রাখুন
-            </label>
-            <a href="#" className="text-emerald-600 font-bold hover:underline">পাসওয়ার্ড ভুলে গেছেন?</a>
-          </div>
-
-          <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl hover:bg-emerald-700 transition shadow-lg transform active:scale-95">
-            লগইন করুন
+          <button type="submit" className="w-full bg-emerald-600 text-white font-black py-5 rounded-3xl hover:bg-emerald-700 transition shadow-xl transform active:scale-95 text-lg">
+            প্রবেশ করুন ➔
           </button>
         </form>
 
-        <div className="mt-8 text-center text-xs text-gray-400">
-          <p>শুধুমাত্র অনুমোদিত শিক্ষক এবং স্টাফদের জন্য</p>
+        <div className="mt-10 text-center">
+          <p className="text-sm text-gray-400 font-bold">নতুন শিক্ষার্থীর ভর্তির জন্য <a href="#/admission" className="text-emerald-600 underline">এখানে ক্লিক করুন</a></p>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -14,15 +14,33 @@ import Contact from './pages/Contact';
 import Login from './pages/Login';
 import Exams from './pages/Exams';
 import AdminDashboard from './pages/AdminDashboard';
+import StudentProfilePage from './pages/StudentProfilePage';
 import { UserRole } from './types';
 
 const App: React.FC = () => {
-  const [role, setRole] = useState<UserRole>(UserRole.GUEST);
+  const [role, setRole] = useState<UserRole>(() => {
+    const savedRole = localStorage.getItem('sia_user_role');
+    return (savedRole as UserRole) || UserRole.GUEST;
+  });
+
+  const [currentUser, setCurrentUser] = useState<any>(() => {
+    const savedUser = localStorage.getItem('sia_current_user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sia_user_role', role);
+    if (currentUser) {
+      localStorage.setItem('sia_current_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('sia_current_user');
+    }
+  }, [role, currentUser]);
 
   return (
     <Router>
       <div className="flex flex-col min-h-screen">
-        <Navbar role={role} setRole={setRole} />
+        <Navbar role={role} setRole={setRole} currentUser={currentUser} />
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -33,8 +51,13 @@ const App: React.FC = () => {
             <Route path="/notices" element={<Notices />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/exams" element={<Exams />} />
-            <Route path="/login" element={<Login setRole={setRole} />} />
+            <Route path="/exams" element={<Exams currentUser={currentUser} role={role} />} />
+            <Route path="/login" element={<Login setRole={setRole} setCurrentUser={setCurrentUser} />} />
+            
+            <Route 
+              path="/student-profile" 
+              element={role === UserRole.STUDENT ? <StudentProfilePage student={currentUser} /> : <Navigate to="/login" />} 
+            />
             
             <Route 
               path="/admin/*" 

@@ -6,66 +6,56 @@ export enum UserRole {
   GUEST = 'GUEST'
 }
 
-export interface Notice {
-  id: string;
-  title: string;
-  date: string;
-  content: string;
-  isImportant: boolean;
-}
-
-export interface Course {
-  id: string;
-  name: string;
-  description: string;
-  fee: string;
-}
-
-export interface Student {
+export interface StudentProfile {
   id: string;
   name: string;
   class: string;
   roll: string;
   guardianPhone: string;
-  status: 'সক্রিয়' | 'নিষ্ক্রিয়';
+  address: string;
+  studentPhoto?: string;
+  fatherName?: string;
+  fatherPhoto?: string;
+  motherName?: string;
+  motherPhoto?: string;
+  results: QuizRecord[];
+  submissions: HomeworkSubmission[];
+  academicResults: TermResult[];
 }
 
-export interface Result {
-  id: string;
-  studentId: string;
-  studentName: string;
-  examType: string;
-  gpa: string;
-  marks: Record<string, number>;
-}
-
-export interface BlogPost {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  date: string;
-  image?: string;
-}
-
-export interface Quiz {
-  id: string;
-  title: string;
-  class: string;
+export interface SubjectMark {
   subject: string;
-  questions: {
-    question: string;
-    options: string[];
-    correctIndex: number;
-  }[];
+  mark: number;
+  grade: string;
+  point: number;
 }
 
-export interface OnlineExam {
+export interface TermResult {
+  id: string;
+  termTitle: string; // e.g., "বার্ষিক পরীক্ষা ২০২৪"
+  subjects: SubjectMark[];
+  totalGPA: number;
+  finalGrade: string;
+  isPassed: boolean;
+  date: string;
+}
+
+export interface HomeworkSubmission {
   id: string;
   title: string;
+  subject: string;
+  teacherName: string;
+  type: 'text' | 'image' | 'audio' | 'video';
+  content: string; 
   date: string;
-  time: string;
-  duration: number; // in minutes
-  class: string;
-  totalMarks: number;
+  status: 'pending' | 'reviewed';
+  feedback?: string;
+}
+
+export interface QuizRecord {
+  quizId: string;
+  quizTitle: string;
+  score: number;
+  totalQuestions: number;
+  date: string;
 }
