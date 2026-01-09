@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Gallery: React.FC = () => {
-  const [images] = useState(() => {
+  const [images, setImages] = useState(() => {
     const saved = localStorage.getItem('sia_gallery');
     return saved ? JSON.parse(saved) : [
       { id: 1, url: 'https://picsum.photos/800/600?school=1', title: 'একাডেমিক ভবন' },
@@ -10,6 +10,14 @@ const Gallery: React.FC = () => {
       { id: 3, url: 'https://picsum.photos/800/600?school=3', title: 'ডিজিটাল ল্যাব' }
     ];
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const saved = localStorage.getItem('sia_gallery');
+      if (saved) setImages(JSON.parse(saved));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="py-16 bg-gray-50">

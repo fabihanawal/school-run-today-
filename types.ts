@@ -6,6 +6,17 @@ export enum UserRole {
   GUEST = 'GUEST'
 }
 
+export interface Course {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  icon: string;
+  features: string[];
+  colorClass: string; // e.g., 'rose-50', 'emerald-50'
+  borderClass: string; // e.g., 'border-rose-200'
+}
+
 export interface StudentProfile {
   id: string;
   name: string;

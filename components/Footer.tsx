@@ -10,7 +10,8 @@ const Footer: React.FC = () => {
       phone1: '০১৭১৬১৩৭৭০৮', 
       email: 's124611@gmail.com', 
       address: 'শিবগঞ্জ, চাঁপাইনবাবগঞ্জ',
-      principalName: 'মোহা: ইব্রাহিম খলিল'
+      principalName: 'মোহা: ইব্রাহিম খলিল',
+      principalMsg: 'আদর্শ মানুষ গড়াই আমাদের লক্ষ্য।'
     };
   });
 
@@ -31,8 +32,8 @@ const Footer: React.FC = () => {
             একটি ঐতিহ্যবাহী শিক্ষা প্রতিষ্ঠান যেখানে আধুনিক শিক্ষার সাথে ইসলামী মূল্যবোধের অনন্য সমন্বয় ঘটে। আমরা বিশ্বাস করি নৈতিকতা সম্পন্ন মেধা সমাজ পরিবর্তনের মূল হাতিয়ার।
           </p>
           <div className="mt-8 flex space-x-5">
-            <a href={settings.facebook} className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all"><i className="fab fa-facebook-f"></i></a>
-            <a href={settings.youtube} className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 hover:text-white transition-all"><i className="fab fa-youtube"></i></a>
+            <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all"><i className="fab fa-facebook-f"></i></a>
+            <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 hover:text-white transition-all"><i className="fab fa-youtube"></i></a>
           </div>
         </div>
 
@@ -68,7 +69,7 @@ const Footer: React.FC = () => {
         <div>
           <h4 className="text-white font-bold mb-6 text-lg">প্রধান বাণী</h4>
           <p className="text-sm italic text-gray-400 leading-relaxed">
-            "আমাদের লক্ষ্য হলো প্রতিটি শিক্ষার্থীকে সুশিক্ষায় শিক্ষিত করে আদর্শ মানুষ হিসেবে গড়ে তোলা।"
+            "{settings.principalMsg.substring(0, 100)}..."
           </p>
           <p className="mt-4 text-xs font-black text-emerald-500 uppercase tracking-widest">— {settings.principalName}</p>
         </div>
