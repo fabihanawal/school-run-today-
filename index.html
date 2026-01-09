@@ -5,15 +5,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>শিবগঞ্জ ইসলামী একাডেমী | Shibganj Islamic Academy</title>
-    <meta name="description" content="শিবগঞ্জ ইসলামী একাডেমী (sia.edu.bd) - চাঁপাইনবাবগঞ্জের একটি শ্রেষ্ঠ আধুনিক এবং ইসলামী শিক্ষা প্রতিষ্ঠান।" />
-    <link rel="canonical" href="https://sia.edu.bd" />
+    <meta name="description" content="শিবগঞ্জ ইসলামী একাডেমী - চাঁপাইনবাবগঞ্জের একটি শ্রেষ্ঠ আধুনিক এবং ইসলামী শিক্ষা প্রতিষ্ঠান।" />
     
-    <!-- Open Graph / Facebook -->
+    <!-- Using relative paths and ensuring no domain-lock -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://sia.edu.bd/" />
     <meta property="og:title" content="শিবগঞ্জ ইসলামী একাডেমী | Shibganj Islamic Academy" />
     <meta property="og:description" content="সততা, নৈতিকতা ও শিক্ষার সমন্বয়ে একটি আদর্শ বিদ্যাপীঠ।" />
-    <meta property="og:image" content="https://sia.edu.bd/og-image.jpg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,66 +18,38 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      body {
-        font-family: 'Noto Sans Bengali', sans-serif;
-      }
+      body { font-family: 'Noto Sans Bengali', sans-serif; }
       .bn-font { font-family: 'Noto Sans Bengali', sans-serif; }
       @keyframes slide {
         0% { transform: translateX(100%); }
         100% { transform: translateX(-100%); }
       }
-      .animate-notice {
-        animation: slide 20s linear infinite;
-      }
-      .animate-fade-in {
-        animation: fadeIn 0.5s ease-out;
-      }
+      .animate-notice { animation: slide 20s linear infinite; }
+      .animate-fade-in { animation: fadeIn 0.5s ease-out; }
       @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
       }
-      .animate-slide-up {
-        animation: slideUp 0.4s ease-out;
-      }
-      @keyframes slideUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      
-      /* Print Styles for Marksheet */
       @media print {
-        nav, footer, button, .no-print {
-          display: none !important;
-        }
-        .print-only {
-          display: block !important;
-        }
-        body {
-          background: white;
-          padding: 0;
-        }
-        .max-w-7xl {
-          max-width: 100% !important;
-          width: 100% !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
+        nav, footer, button, .no-print { display: none !important; }
+        body { background: white; padding: 0; }
       }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
-  }
-}
-</script>
-</head>
+    <script type="importmap">
+    {
+      "imports": {
+        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+        "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
+        "react/": "https://esm.sh/react@^19.2.3/",
+        "react": "https://esm.sh/react@^19.2.3",
+        "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
+      }
+    }
+    </script>
+  </head>
   <body class="bg-gray-50 text-gray-900">
     <div id="root"></div>
+    <!-- Pointing directly to index.tsx for esm.sh compatibility -->
     <script type="module" src="index.tsx"></script>
   </body>
 </html>

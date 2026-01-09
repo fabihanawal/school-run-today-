@@ -1,6 +1,7 @@
 
+
 import React, { useState, useEffect } from 'react';
-import { HomeworkSubmission, TermResult } from '../types';
+import { TermResult } from '../types';
 
 interface StudentProfilePageProps {
   student: any;

@@ -10,17 +10,24 @@ export interface StudentProfile {
   id: string;
   name: string;
   class: string;
+  section: string; // শাখা
   roll: string;
-  guardianPhone: string;
+  fatherName: string;
+  motherName: string;
+  parentPhone: string; // পিতা/মাতার মোবাইল
   address: string;
   studentPhoto?: string;
-  fatherName?: string;
-  fatherPhoto?: string;
-  motherName?: string;
-  motherPhoto?: string;
-  results: QuizRecord[];
-  submissions: HomeworkSubmission[];
   academicResults: TermResult[];
+}
+
+export interface StaffProfile {
+  id: string;
+  name: string;
+  designation: string;
+  subject?: string; // শিক্ষকদের জন্য বিষয়
+  mobile: string;
+  type: 'TEACHER' | 'STAFF';
+  photo?: string;
 }
 
 export interface SubjectMark {
@@ -32,24 +39,12 @@ export interface SubjectMark {
 
 export interface TermResult {
   id: string;
-  termTitle: string; // e.g., "বার্ষিক পরীক্ষা ২০২৪"
+  termTitle: string;
   subjects: SubjectMark[];
   totalGPA: number;
   finalGrade: string;
   isPassed: boolean;
   date: string;
-}
-
-export interface HomeworkSubmission {
-  id: string;
-  title: string;
-  subject: string;
-  teacherName: string;
-  type: 'text' | 'image' | 'audio' | 'video';
-  content: string; 
-  date: string;
-  status: 'pending' | 'reviewed';
-  feedback?: string;
 }
 
 export interface QuizRecord {
