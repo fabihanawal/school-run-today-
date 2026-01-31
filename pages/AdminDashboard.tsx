@@ -1,19 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { TermResult, Course } from '../types';
+import { StaffProfile, Notice, GalleryImage, SiteSettings, Course } from '../types';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [isSyncing, setIsSyncing] = useState(false);
   
   // Database States
   const [students, setStudents] = useState(() => JSON.parse(localStorage.getItem('sia_students_db') || '[]'));
-  const [notices, setNotices] = useState(() => JSON.parse(localStorage.getItem('sia_notices') || '[]'));
-  const [staff, setStaff] = useState(() => JSON.parse(localStorage.getItem('sia_staff') || '[]'));
-  const [gallery, setGallery] = useState(() => JSON.parse(localStorage.getItem('sia_gallery') || '[]'));
+  const [notices, setNotices] = useState<Notice[]>(() => JSON.parse(localStorage.getItem('sia_notices') || '[]'));
+  const [staff, setStaff] = useState<StaffProfile[]>(() => JSON.parse(localStorage.getItem('sia_staff') || '[]'));
+  const [gallery, setGallery] = useState<GalleryImage[]>(() => JSON.parse(localStorage.getItem('sia_gallery') || '[]'));
   const [courses, setCourses] = useState<Course[]>(() => JSON.parse(localStorage.getItem('sia_courses') || '[]'));
-  
-  // Site Settings (Principal/Chairman/Contact)
-  const [settings, setSettings] = useState(() => {
+  const [settings, setSettings] = useState<SiteSettings>(() => {
     const saved = localStorage.getItem('sia_site_settings');
     return saved ? JSON.parse(saved) : {
       schoolName: 'শিবগঞ্জ ইসলামী একাডেমী',
@@ -26,18 +25,10 @@ const AdminDashboard: React.FC = () => {
       principalPhoto: 'https://picsum.photos/200/200?man',
       chairmanName: 'আলহাজ্ব মোঃ জয়নাল আবেদিন',
       chairmanMsg: 'শিক্ষাই জাতির মেরুদণ্ড, আর নৈতিকতা তার ভিত্তি।',
-      chairmanPhoto: 'https://picsum.photos/200/200?elder'
+      chairmanPhoto: 'https://picsum.photos/200/200?elder',
+      bannerImage: 'https://picsum.photos/1920/1080?school'
     };
   });
-
-  // Course Form State
-  const [courseForm, setCourseForm] = useState<Partial<Course>>({
-    title: '', category: '', description: '', icon: '🎓', colorClass: 'bg-emerald-50', borderClass: 'border-emerald-200', features: []
-  });
-  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
-
-  // Gallery Form State
-  const [newGalleryImg, setNewGalleryImg] = useState({ title: '', url: '' });
 
   useEffect(() => {
     localStorage.setItem('sia_students_db', JSON.stringify(students));
@@ -48,62 +39,77 @@ const AdminDashboard: React.FC = () => {
     localStorage.setItem('sia_site_settings', JSON.stringify(settings));
   }, [students, notices, staff, gallery, courses, settings]);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => callback(reader.result as string);
-      reader.readAsDataURL(file);
+  // Cloud Sync Logic
+  const saveToCloud = async () => {
+    setIsSyncing(true);
+    const db = { students, notices, staff, gallery, courses, settings };
+    try {
+      const response = await fetch('api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(db)
+      });
+      if (response.ok) {
+        alert('অভিনন্দন! আপনার সব ডেটা এখন আপনার হোস্টিং সার্ভারে সেভ হয়েছে। এখন সবাই আপডেট দেখতে পাবে।');
+      } else {
+        alert('সার্ভারে সেভ করতে সমস্যা হয়েছে। দয়া করে api.php ফাইলটি ঠিকমতো আপলোড করা আছে কি না চেক করুন।');
+      }
+    } catch (err) {
+      alert('Network error: হোস্টিং সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।');
+    } finally {
+      setIsSyncing(false);
     }
-  };
-
-  const handleSaveCourse = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingCourseId) {
-      setCourses(courses.map(c => c.id === editingCourseId ? { ...c, ...courseForm } as Course : c));
-      setEditingCourseId(null);
-    } else {
-      setCourses([...courses, { ...courseForm, id: Date.now().toString() } as Course]);
-    }
-    setCourseForm({ title: '', category: '', description: '', icon: '🎓', colorClass: 'bg-emerald-50', borderClass: 'border-emerald-200', features: [] });
-    setActiveTab('courses');
   };
 
   const menuItems = [
     { id: 'overview', label: 'ওভারভিউ', icon: '📊' },
-    { id: 'students', label: 'শিক্ষার্থী', icon: '👨‍🎓' },
-    { id: 'staff', label: 'শিক্ষক ও কর্মচারী', icon: '🏫' },
-    { id: 'courses', label: 'কোর্স ম্যানেজমেন্ট', icon: '📚' },
-    { id: 'gallery', label: 'গ্যালারি', icon: '🖼️' },
-    { id: 'messages', label: 'শীর্ষ বাণী', icon: '🗣️' },
-    { id: 'settings', label: 'সাইট সেটিংস', icon: '⚙️' },
+    { id: 'staff', label: 'শিক্ষক-কর্মী', icon: '🏫' },
     { id: 'notices', label: 'নোটিশ', icon: '📢' },
+    { id: 'gallery', label: 'গ্যালারি', icon: '🖼️' },
+    { id: 'settings', label: 'সেটিংস', icon: '⚙️' },
+    { id: 'database', label: 'Cloud Sync (হোস্টিং)', icon: '☁️' },
   ];
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'gallery':
+      case 'database':
         return (
           <div className="space-y-6 animate-fade-in">
-            <div className="bg-white p-8 rounded-[40px] shadow-sm">
-              <h3 className="text-xl font-black mb-6">নতুন ছবি যুক্ত করুন</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="text" placeholder="ছবির শিরোনাম" className="p-4 rounded-2xl bg-gray-50 border" value={newGalleryImg.title} onChange={e => setNewGalleryImg({...newGalleryImg, title: e.target.value})} />
-                <input type="file" className="hidden" id="gal-up" onChange={e => handlePhotoUpload(e, (url) => setNewGalleryImg({...newGalleryImg, url}))} />
-                <label htmlFor="gal-up" className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-center font-bold cursor-pointer">
-                  {newGalleryImg.url ? 'ছবি পরিবর্তন করুন' : 'ছবি নির্বাচন করুন'}
-                </label>
-                <button onClick={() => { setGallery([...gallery, { ...newGalleryImg, id: Date.now() }]); setNewGalleryImg({title:'', url:''}); }} className="md:col-span-2 bg-emerald-600 text-white p-4 rounded-2xl font-black">গ্যালারিতে সেভ করুন</button>
+            <div className="bg-white p-12 rounded-[48px] shadow-sm text-center">
+              <div className="w-24 h-24 bg-emerald-50 text-emerald-600 rounded-[32px] flex items-center justify-center mx-auto mb-6 text-4xl">
+                <i className="fas fa-cloud-upload-alt"></i>
+              </div>
+              <h3 className="text-3xl font-black mb-4">হোস্টিং ক্লাউড সিঙ্ক</h3>
+              <p className="text-gray-500 mb-10 max-w-lg mx-auto leading-relaxed">
+                আপনার হোস্টিং সার্ভারের মেমোরিতে সরাসরি ডেটা সেভ করুন। এতে করে আপনি সাইটে যা পরিবর্তন করবেন তা সাথে সাথে লাইভ হয়ে যাবে এবং আপনার হোস্টিং এর স্টোরেজ ব্যবহার হবে।
+              </p>
+              
+              <div className="flex flex-col items-center gap-6">
+                <button 
+                  onClick={saveToCloud} 
+                  disabled={isSyncing}
+                  className={`w-full max-w-sm ${isSyncing ? 'bg-gray-400' : 'bg-emerald-600 hover:bg-emerald-700'} text-white p-6 rounded-[32px] font-black flex items-center justify-center gap-4 shadow-2xl transition transform active:scale-95`}
+                >
+                  {isSyncing ? (
+                    <><i className="fas fa-spinner animate-spin"></i> সিঙ্কিং হচ্ছে...</>
+                  ) : (
+                    <><i className="fas fa-cloud-upload-alt"></i> সার্ভারে সেভ করুন (Live Update)</>
+                  )}
+                </button>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Server File: sia_db.json</p>
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {gallery.map((img: any) => (
-                <div key={img.id} className="relative group bg-white p-2 rounded-2xl shadow-sm">
-                  <img src={img.url} className="w-full h-32 object-cover rounded-xl" />
-                  <p className="text-[10px] font-bold mt-2 truncate">{img.title}</p>
-                  <button onClick={() => setGallery(gallery.filter((g:any)=>g.id !== img.id))} className="absolute top-4 right-4 bg-red-500 text-white w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition"><i className="fas fa-times text-[10px]"></i></button>
-                </div>
-              ))}
+
+            <div className="bg-amber-50 p-8 rounded-[40px] border border-amber-100 flex gap-6 items-start">
+               <div className="text-amber-600 text-2xl mt-1"><i className="fas fa-info-circle"></i></div>
+               <div>
+                 <h4 className="font-black text-amber-900 mb-2">জরুরী নির্দেশাবলী:</h4>
+                 <ul className="text-sm text-amber-800 space-y-2 list-disc pl-4 opacity-80">
+                   <li>এই বাটনটি ক্লিক করলে আপনার ব্রাউজারের সব লোকাল ডেটা হোস্টিং সার্ভারে চলে যাবে।</li>
+                   <li>নিশ্চিত হোন যে আপনার হোস্টিং এর `public_html` ফোল্ডারে `api.php` ফাইলটি আছে।</li>
+                   <li>একবার সেভ করার পর পৃথিবীর যেকোনো প্রান্ত থেকে ভিজিটররা আপনার করা পরিবর্তনগুলো দেখতে পাবে।</li>
+                 </ul>
+               </div>
             </div>
           </div>
         );
@@ -112,99 +118,22 @@ const AdminDashboard: React.FC = () => {
         return (
           <div className="space-y-6 animate-fade-in">
             <div className="bg-white p-10 rounded-[40px] shadow-sm">
-              <h3 className="text-2xl font-black mb-8">সাইট কন্টাক্ট ও সাধারণ তথ্য</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <h3 className="text-2xl font-black mb-8 border-b pb-4">সাইট কনফিগারেশন</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <label className="text-xs font-black text-gray-400 uppercase ml-1">প্রতিষ্ঠানের নাম</label>
-                  <input type="text" className="w-full p-4 rounded-2xl bg-gray-50 border" value={settings.schoolName} onChange={e => setSettings({...settings, schoolName: e.target.value})} />
+                  <label className="text-xs font-black text-gray-400 uppercase">স্কুলের নাম</label>
+                  <input type="text" className="w-full p-4 mt-1 rounded-2xl bg-gray-50 border" value={settings.schoolName} onChange={e => setSettings({...settings, schoolName: e.target.value})} />
                 </div>
                 <div>
-                  <label className="text-xs font-black text-gray-400 uppercase ml-1">ট্যাগলাইন</label>
-                  <input type="text" className="w-full p-4 rounded-2xl bg-gray-50 border" value={settings.tagline} onChange={e => setSettings({...settings, tagline: e.target.value})} />
-                </div>
-                <div>
-                  <label className="text-xs font-black text-gray-400 uppercase ml-1">মোবাইল নম্বর</label>
-                  <input type="text" className="w-full p-4 rounded-2xl bg-gray-50 border" value={settings.phone1} onChange={e => setSettings({...settings, phone1: e.target.value})} />
-                </div>
-                <div>
-                  <label className="text-xs font-black text-gray-400 uppercase ml-1">ইমেইল</label>
-                  <input type="email" className="w-full p-4 rounded-2xl bg-gray-50 border" value={settings.email} onChange={e => setSettings({...settings, email: e.target.value})} />
+                  <label className="text-xs font-black text-gray-400 uppercase">ব্যানার ইমেজ (URL)</label>
+                  <input type="text" className="w-full p-4 mt-1 rounded-2xl bg-gray-50 border" value={settings.bannerImage} onChange={e => setSettings({...settings, bannerImage: e.target.value})} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-xs font-black text-gray-400 uppercase ml-1">ঠিকানা</label>
-                  <input type="text" className="w-full p-4 rounded-2xl bg-gray-50 border" value={settings.address} onChange={e => setSettings({...settings, address: e.target.value})} />
+                  <label className="text-xs font-black text-gray-400 uppercase">ঠিকানা</label>
+                  <input type="text" className="w-full p-4 mt-1 rounded-2xl bg-gray-50 border" value={settings.address} onChange={e => setSettings({...settings, address: e.target.value})} />
                 </div>
               </div>
-              <button onClick={() => alert('সংরক্ষিত হয়েছে!')} className="w-full mt-8 bg-black text-white p-5 rounded-3xl font-black">সেটিংস সেভ করুন</button>
-            </div>
-          </div>
-        );
-
-      case 'messages':
-        return (
-          <div className="space-y-6 animate-fade-in">
-            <div className="bg-white p-10 rounded-[40px] shadow-sm">
-              <h2 className="text-2xl font-black mb-8">শীর্ষ ব্যক্তিদের বাণী ও ছবি</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="space-y-4 p-6 bg-gray-50 rounded-[32px]">
-                  <h4 className="font-black text-emerald-800">প্রধান শিক্ষকের তথ্য</h4>
-                  <img src={settings.principalPhoto} className="w-24 h-24 rounded-3xl mx-auto border-4 border-white shadow-lg" />
-                  <input type="file" className="w-full text-xs" onChange={(e) => handlePhotoUpload(e, (url) => setSettings({...settings, principalPhoto: url}))} />
-                  <input type="text" className="w-full p-3 rounded-xl border" placeholder="নাম" value={settings.principalName} onChange={e => setSettings({...settings, principalName: e.target.value})} />
-                  <textarea className="w-full p-3 rounded-xl border h-24" placeholder="বাণী" value={settings.principalMsg} onChange={e => setSettings({...settings, principalMsg: e.target.value})} />
-                </div>
-                <div className="space-y-4 p-6 bg-gray-50 rounded-[32px]">
-                  <h4 className="font-black text-amber-800">সভাপতির তথ্য</h4>
-                  <img src={settings.chairmanPhoto} className="w-24 h-24 rounded-3xl mx-auto border-4 border-white shadow-lg" />
-                  <input type="file" className="w-full text-xs" onChange={(e) => handlePhotoUpload(e, (url) => setSettings({...settings, chairmanPhoto: url}))} />
-                  <input type="text" className="w-full p-3 rounded-xl border" placeholder="নাম" value={settings.chairmanName} onChange={e => setSettings({...settings, chairmanName: e.target.value})} />
-                  <textarea className="w-full p-3 rounded-xl border h-24" placeholder="বাণী" value={settings.chairmanMsg} onChange={e => setSettings({...settings, chairmanMsg: e.target.value})} />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'courses':
-        return (
-          <div className="space-y-6 animate-fade-in">
-            <div className="flex justify-between items-center bg-white p-6 rounded-[32px] shadow-sm">
-               <h2 className="text-xl font-black text-gray-800">কোর্স তালিকা</h2>
-               <button onClick={() => { setEditingCourseId(null); setCourseForm({title:'', category:'', description:'', icon:'🎓', colorClass:'bg-emerald-50', borderClass:'border-emerald-200', features:[]}); setActiveTab('courses_form'); }} className="bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold">নতুন কোর্স +</button>
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-              {courses.map(course => (
-                <div key={course.id} className="bg-white p-6 rounded-[32px] shadow-sm flex items-center justify-between group border border-transparent hover:border-emerald-100 transition-all">
-                  <div className="flex items-center gap-6">
-                    <div className="text-4xl">{course.icon}</div>
-                    <div>
-                      <h4 className="font-bold text-lg">{course.title}</h4>
-                      <p className="text-xs text-gray-400 font-bold uppercase">{course.category}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => { setCourseForm(course); setEditingCourseId(course.id); setActiveTab('courses_form'); }} className="bg-blue-50 text-blue-600 w-10 h-10 rounded-xl hover:bg-blue-600 hover:text-white transition-all"><i className="fas fa-edit"></i></button>
-                    <button onClick={() => setCourses(courses.filter(c => c.id !== course.id))} className="bg-red-50 text-red-600 w-10 h-10 rounded-xl hover:bg-red-600 hover:text-white transition-all"><i className="fas fa-trash"></i></button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'courses_form':
-        return (
-          <div className="animate-fade-in">
-            <div className="bg-white p-10 rounded-[40px] shadow-sm">
-              <h2 className="text-2xl font-black mb-8">{editingCourseId ? 'কোর্স আপডেট করুন' : 'নতুন কোর্স তৈরি করুন'}</h2>
-              <form onSubmit={handleSaveCourse} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <input type="text" placeholder="কোর্সের নাম" className="w-full p-4 rounded-2xl bg-gray-50 border" value={courseForm.title} onChange={e => setCourseForm({...courseForm, title: e.target.value})} />
-                  <input type="text" placeholder="ক্যাটাগরি" className="w-full p-4 rounded-2xl bg-gray-50 border" value={courseForm.category} onChange={e => setCourseForm({...courseForm, category: e.target.value})} />
-                </div>
-                <textarea placeholder="বর্ণনা" className="w-full p-4 rounded-2xl bg-gray-50 border h-32" value={courseForm.description} onChange={e => setCourseForm({...courseForm, description: e.target.value})} />
-                <button type="submit" className="w-full bg-emerald-600 text-white p-5 rounded-3xl font-black">সংরক্ষণ করুন</button>
-              </form>
+              <button onClick={() => alert('সেটিংস টেম্পোরারি সেভ হয়েছে। স্থায়ীভাবে লাইভ করতে Cloud Sync ব্যবহার করুন।')} className="w-full mt-10 bg-black text-white p-5 rounded-3xl font-black shadow-lg">ড্রাফট সেভ করুন</button>
             </div>
           </div>
         );
@@ -212,21 +141,26 @@ const AdminDashboard: React.FC = () => {
       case 'overview':
       default:
         return (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fade-in">
-            {[
-              { label: 'শিক্ষার্থী', val: students.length, color: 'border-emerald-500', icon: '👨‍🎓' },
-              { label: 'শিক্ষক-কর্মী', val: staff.length, color: 'border-blue-500', icon: '🏫' },
-              { label: 'কোর্স', val: courses.length, color: 'border-rose-500', icon: '📚' },
-              { label: 'গ্যালারি', val: gallery.length, color: 'border-amber-500', icon: '🖼️' }
-            ].map((stat, i) => (
-              <div key={i} className={`bg-white p-8 rounded-[40px] shadow-sm border-b-4 ${stat.color}`}>
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-xs font-black text-gray-400 uppercase">{stat.label}</p>
-                  <span>{stat.icon}</span>
-                </div>
-                <p className="text-4xl font-black text-gray-800">{stat.val}</p>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
+            <div className="bg-white p-8 rounded-[40px] shadow-sm border-b-8 border-emerald-500">
+               <p className="text-xs font-black text-gray-400 uppercase mb-2">মোট শিক্ষক ও কর্মী</p>
+               <h4 className="text-5xl font-black text-gray-800">{staff.length}</h4>
+            </div>
+            <div className="bg-white p-8 rounded-[40px] shadow-sm border-b-8 border-blue-500">
+               <p className="text-xs font-black text-gray-400 uppercase mb-2">পাবলিশ করা নোটিশ</p>
+               <h4 className="text-5xl font-black text-gray-800">{notices.length}</h4>
+            </div>
+            <div className="bg-white p-8 rounded-[40px] shadow-sm border-b-8 border-amber-500">
+               <p className="text-xs font-black text-gray-400 uppercase mb-2">গ্যালারি ইমেজ</p>
+               <h4 className="text-5xl font-black text-gray-800">{gallery.length}</h4>
+            </div>
+            <div className="md:col-span-3 bg-emerald-900 p-10 rounded-[48px] text-white flex items-center justify-between shadow-2xl overflow-hidden relative">
+               <div className="relative z-10">
+                 <h3 className="text-3xl font-black mb-2">ডোমেইন ও হোস্টিং একটিভ</h3>
+                 <p className="opacity-70 max-w-md">আপনার সাইটটি এখন আপনার নিজস্ব হোস্টিং স্টোরেজের সাথে কানেক্টেড। যেকোনো আপডেট সরাসরি সার্ভারে পাঠাতে Cloud Sync ব্যবহার করুন।</p>
+               </div>
+               <i className="fas fa-database text-[150px] absolute -right-10 -bottom-10 opacity-10"></i>
+            </div>
           </div>
         );
     }
@@ -237,10 +171,13 @@ const AdminDashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1">
           <div className="bg-white p-6 rounded-[32px] shadow-sm sticky top-24">
-            <h1 className="text-center font-black text-emerald-800 mb-8 border-b pb-4 uppercase tracking-tighter">SIA Admin</h1>
+            <div className="text-center mb-8 border-b pb-4">
+               <h1 className="font-black text-emerald-800 text-lg uppercase tracking-widest">SIA Panel</h1>
+               <p className="text-[10px] text-gray-400 font-bold">Connected to Server</p>
+            </div>
             <nav className="space-y-1">
               {menuItems.map(item => (
-                <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full text-left px-5 py-4 rounded-2xl flex items-center gap-4 transition-all ${activeTab === item.id ? 'bg-emerald-600 text-white font-bold shadow-xl' : 'text-gray-500 hover:bg-emerald-50'}`}>
+                <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full text-left px-5 py-4 rounded-2xl flex items-center gap-4 transition-all ${activeTab === item.id ? 'bg-emerald-600 text-white font-bold shadow-xl translate-x-1' : 'text-gray-500 hover:bg-emerald-50'}`}>
                   <span className="text-xl">{item.icon}</span>
                   <span className="text-sm">{item.label}</span>
                 </button>

@@ -13,32 +13,47 @@ export interface Course {
   description: string;
   icon: string;
   features: string[];
-  colorClass: string; // e.g., 'rose-50', 'emerald-50'
-  borderClass: string; // e.g., 'border-rose-200'
-}
-
-export interface StudentProfile {
-  id: string;
-  name: string;
-  class: string;
-  section: string; // শাখা
-  roll: string;
-  fatherName: string;
-  motherName: string;
-  parentPhone: string; // পিতা/মাতার মোবাইল
-  address: string;
-  studentPhoto?: string;
-  academicResults: TermResult[];
+  colorClass: string;
+  borderClass: string;
 }
 
 export interface StaffProfile {
   id: string;
   name: string;
   designation: string;
-  subject?: string; // শিক্ষকদের জন্য বিষয়
+  subject?: string;
   mobile: string;
   type: 'TEACHER' | 'STAFF';
   photo?: string;
+}
+
+export interface Notice {
+  id: string;
+  title: string;
+  date: string;
+  type: string;
+  content?: string;
+}
+
+export interface GalleryImage {
+  id: string;
+  url: string;
+  title: string;
+}
+
+export interface SiteSettings {
+  schoolName: string;
+  tagline: string;
+  phone1: string;
+  email: string;
+  address: string;
+  principalName: string;
+  principalMsg: string;
+  principalPhoto: string;
+  chairmanName: string;
+  chairmanMsg: string;
+  chairmanPhoto: string;
+  bannerImage: string;
 }
 
 export interface SubjectMark {
@@ -55,13 +70,5 @@ export interface TermResult {
   totalGPA: number;
   finalGrade: string;
   isPassed: boolean;
-  date: string;
-}
-
-export interface QuizRecord {
-  quizId: string;
-  quizTitle: string;
-  score: number;
-  totalQuestions: number;
   date: string;
 }
