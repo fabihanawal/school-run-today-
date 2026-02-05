@@ -94,6 +94,11 @@ export interface AdmissionSubmission {
   address: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   appliedDate: string;
+  // File fields (Base64 strings)
+  studentPhoto?: string;
+  birthCertificate?: string;
+  fatherPhoto?: string;
+  motherPhoto?: string;
 }
 
 export interface Student {
