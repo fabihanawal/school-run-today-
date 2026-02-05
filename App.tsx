@@ -28,39 +28,41 @@ const App: React.FC = () => {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  // Initial Data Fetch from Hosting Server
+  // Global Sync Logic with 503 Retry
   useEffect(() => {
-    const fetchServerData = async () => {
+    const fetchServerData = async (retries = 3, delay = 1500) => {
       try {
-        // Only attempt to fetch if api.php exists and we are on a web server
         const response = await fetch('api.php', { cache: 'no-store' });
         
-        if (!response.ok) {
-            console.warn("Cloud DB not initialized or not found. Falling back to local data.");
-            return;
+        if (response.status === 503 && retries > 0) {
+          console.warn(`Server busy. Retrying in ${delay}ms...`);
+          setTimeout(() => fetchServerData(retries - 1, delay * 2), delay);
+          return;
         }
+
+        if (!response.ok) return;
 
         const data = await response.json();
-        
-        // Skip if response is an error message or empty status
-        if (data.error || data.status === 'new' || data.status === 'empty') {
-            console.log("No existing cloud data found. Initializing with local data...");
-            return;
-        }
+        if (data.status === 'new' || data.error) return;
 
-        // Only sync if we have meaningful data
-        if (data.settings || data.notices || data.staff) {
-          if (data.settings) localStorage.setItem('sia_site_settings', JSON.stringify(data.settings));
-          if (data.notices) localStorage.setItem('sia_notices', JSON.stringify(data.notices));
-          if (data.staff) localStorage.setItem('sia_staff', JSON.stringify(data.staff));
-          if (data.gallery) localStorage.setItem('sia_gallery', JSON.stringify(data.gallery));
-          if (data.courses) localStorage.setItem('sia_courses', JSON.stringify(data.courses));
-          if (data.students) localStorage.setItem('sia_students_db', JSON.stringify(data.students));
-          console.log("✅ Server data successfully synced to your browser.");
-        }
+        // Sync all local storages with server data
+        const syncMap = {
+          'sia_site_settings': data.settings,
+          'sia_notices': data.notices,
+          'sia_staff': data.staff,
+          'sia_gallery': data.gallery,
+          'sia_courses': data.courses,
+          'sia_students_db': data.students,
+          'sia_quizzes': data.quizzes
+        };
+
+        Object.entries(syncMap).forEach(([key, val]) => {
+          if (val) localStorage.setItem(key, JSON.stringify(val));
+        });
+
+        console.log("☁️ All data successfully synced from server.");
       } catch (err) {
-        // Silently fail locally or provide clear instructions
-        console.log("ℹ️ Cloud sync status: Offline or Localhost. Local storage in use.");
+        console.log("ℹ️ Running in local mode.");
       }
     };
     fetchServerData();
@@ -91,16 +93,9 @@ const App: React.FC = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/exams" element={<Exams currentUser={currentUser} role={role} />} />
             <Route path="/login" element={<Login setRole={setRole} setCurrentUser={setCurrentUser} />} />
-            
-            <Route 
-              path="/student-profile" 
-              element={role === UserRole.STUDENT ? <StudentProfilePage student={currentUser} /> : <Navigate to="/login" />} 
-            />
-            
-            <Route 
-              path="/admin/*" 
-              element={role === UserRole.ADMIN ? <AdminDashboard /> : <Navigate to="/login" />} 
-            />
+            <Route path="/student-profile" element={role === UserRole.STUDENT ? <StudentProfilePage student={currentUser} /> : <Navigate to="/login" />} />
+            <Route path="/admin/*" element={role === UserRole.ADMIN ? <AdminDashboard /> : <Navigate to="/login" />} />
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
         <Footer />
