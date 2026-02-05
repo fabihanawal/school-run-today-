@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { SiteSettings } from '../types';
 
 const Home: React.FC = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [settings, setSettings] = useState<SiteSettings>(() => {
     const saved = localStorage.getItem('sia_site_settings');
     return saved ? JSON.parse(saved) : {
@@ -11,11 +12,17 @@ const Home: React.FC = () => {
       tagline: 'সততা, নৈতিকতা ও শিক্ষার সমন্বয়ে একটি আদর্শ বিদ্যাপীঠ',
       principalName: 'মোহা: ইব্রাহিম খলিল',
       principalMsg: 'আদর্শ মানুষ গড়াই আমাদের লক্ষ্য।',
-      principalPhoto: 'https://picsum.photos/200/200?man',
+      principalPhoto: 'https://picsum.photos/400/400?principal',
       chairmanName: 'আলহাজ্ব মোঃ জয়নাল আবেদিন',
       chairmanMsg: 'শিক্ষাই জাতির মেরুদণ্ড, আর নৈতিকতা তার ভিত্তি।',
-      chairmanPhoto: 'https://picsum.photos/200/200?elder',
+      chairmanPhoto: 'https://picsum.photos/400/400?chairman',
       bannerImage: 'https://picsum.photos/1920/1080?school',
+      scrollingHeadline: '২০২৪ শিক্ষাবর্ষের ভর্তি কার্যক্রম চলছে। বিস্তারিত জানতে অফিস চলাকালীন যোগাযোগ করুন।',
+      sliderImages: [
+        { id: '1', url: 'https://picsum.photos/1920/800?education=1', title: 'আধুনিক ও দ্বীনি শিক্ষার সমন্বয়' },
+        { id: '2', url: 'https://picsum.photos/1920/800?education=2', title: 'স্মার্ট ক্লাসরুম ও দক্ষ শিক্ষক' },
+        { id: '3', url: 'https://picsum.photos/1920/800?education=3', title: 'শিক্ষার্থীদের নৈতিক মানোন্নয়ন' }
+      ],
       homeLayout: 'classic'
     };
   });
@@ -29,130 +36,122 @@ const Home: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const LayoutClassic = () => (
-    <div className="animate-fade-in">
-      <section className="relative h-[550px] flex items-center justify-center overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center z-0 scale-105 transition-all duration-1000"
-          style={{ backgroundImage: `linear-gradient(rgba(0,30,15,0.8), rgba(0,15,5,0.8)), url('${settings.bannerImage}')` }}
-        />
-        <div className="relative z-10 text-center text-white px-4 max-w-5xl">
-          <h1 className="text-5xl md:text-7xl font-black mb-6 drop-shadow-2xl leading-tight">{settings.schoolName}</h1>
-          <p className="text-xl md:text-2xl mb-10 font-medium opacity-90">{settings.tagline}</p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link to="/admission" className="bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-5 rounded-[24px] text-lg font-black transition-all transform hover:scale-105 shadow-2xl">অনলাইন ভর্তি</Link>
-            <Link to="/notices" className="bg-white hover:bg-gray-100 text-emerald-900 px-10 py-5 rounded-[24px] text-lg font-black transition-all transform hover:scale-105 shadow-2xl">নোটিশ বোর্ড</Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="max-w-7xl mx-auto px-4 py-20 grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="p-10 border rounded-[48px] bg-emerald-50/50 border-emerald-100">
-              <div className="text-emerald-700 mb-6 bg-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm"><i className="fas fa-graduation-cap text-xl"></i></div>
-              <h3 className="text-xl font-black mb-2 text-gray-800">মানসম্মত শিক্ষা</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">অভিজ্ঞ শিক্ষক মণ্ডলী দ্বারা পরিচালিত আধুনিক ও নৈতিক শিক্ষা কার্যক্রম।</p>
-            </div>
-            <div className="p-10 border rounded-[48px] bg-blue-50/50 border-blue-100">
-              <div className="text-blue-700 mb-6 bg-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm"><i className="fas fa-microchip text-xl"></i></div>
-              <h3 className="text-xl font-black mb-2 text-gray-800">স্মার্ট ক্লাসরুম</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">ডিজিটাল কন্টেন্টের মাধ্যমে শিক্ষার্থীদের কঠিন বিষয়গুলো সহজভাবে শেখানো হয়।</p>
-            </div>
-          </div>
-          <div className="bg-gray-50 p-12 rounded-[56px] border border-gray-100 relative">
-             <h2 className="text-3xl font-black mb-6 border-l-8 border-emerald-600 pl-6">আমাদের লক্ষ্য</h2>
-             <p className="text-gray-600 leading-relaxed text-lg italic">"আদর্শ মানুষ গড়াই আমাদের মূল উদ্দেশ্য। আমরা বিশ্বাস করি মেধা ও নৈতিকতার সমন্বয় সমাজ পরিবর্তনের মূল হাতিয়ার।"</p>
-          </div>
-        </div>
-        <div className="lg:col-span-1 space-y-8">
-          <div className="bg-white p-8 rounded-[48px] shadow-xl border border-emerald-50 text-center">
-            <img src={settings.principalPhoto} className="w-28 h-28 rounded-3xl mx-auto mb-6 object-cover border-4 border-emerald-100 shadow-xl" />
-            <h3 className="text-xl font-black text-emerald-800">{settings.principalName}</h3>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">প্রধান শিক্ষক</p>
-            <div className="bg-emerald-50 p-6 rounded-[32px] italic text-gray-600 text-sm">"{settings.principalMsg}"</div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-
-  const LayoutModern = () => (
-    <div className="bg-gray-50 animate-fade-in">
-       <section className="bg-white pt-12 pb-24">
-         <div className="max-w-7xl mx-auto px-4 flex flex-col lg:flex-row items-center gap-16">
-            <div className="lg:w-1/2 space-y-8 text-center lg:text-left">
-               <span className="bg-emerald-100 text-emerald-700 px-6 py-2 rounded-full font-black text-xs uppercase tracking-[0.2em]">Admission Open 2024</span>
-               <h1 className="text-6xl md:text-8xl font-black text-emerald-900 leading-tight tracking-tighter">গড়ব আগামী <br/><span className="text-emerald-500">নৈতিকতার সাথে।</span></h1>
-               <p className="text-gray-500 text-xl leading-relaxed max-w-lg">{settings.tagline}</p>
-               <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-                  <Link to="/admission" className="bg-emerald-600 text-white px-10 py-5 rounded-full font-black text-lg shadow-2xl hover:bg-emerald-700 transition">ভর্তি আবেদন ➔</Link>
-                  <Link to="/contact" className="bg-white text-emerald-900 border-2 border-emerald-100 px-10 py-5 rounded-full font-black text-lg hover:bg-emerald-50 transition">যোগাযোগ</Link>
-               </div>
-            </div>
-            <div className="lg:w-1/2 relative">
-               <div className="absolute inset-0 bg-emerald-600 rounded-[80px] rotate-3 -z-0"></div>
-               <img src={settings.bannerImage} className="relative z-10 w-full rounded-[80px] shadow-2xl h-[600px] object-cover -rotate-3 transition-transform hover:rotate-0 duration-500" />
-            </div>
-         </div>
-       </section>
-       
-       <section className="py-24 max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div className="bg-white p-12 rounded-[64px] shadow-sm flex items-center gap-8">
-             <img src={settings.principalPhoto} className="w-40 h-40 rounded-[48px] object-cover shadow-2xl" />
-             <div>
-                <h3 className="text-2xl font-black text-gray-800">{settings.principalName}</h3>
-                <p className="text-emerald-600 font-bold mb-4">প্রধান শিক্ষক</p>
-                <p className="text-gray-500 italic text-sm">"{settings.principalMsg.substring(0, 100)}..."</p>
-             </div>
-          </div>
-          <div className="bg-white p-12 rounded-[64px] shadow-sm flex items-center gap-8">
-             <img src={settings.chairmanPhoto} className="w-40 h-40 rounded-[48px] object-cover shadow-2xl" />
-             <div>
-                <h3 className="text-2xl font-black text-gray-800">{settings.chairmanName}</h3>
-                <p className="text-amber-600 font-bold mb-4">চেয়ারম্যান</p>
-                <p className="text-gray-500 italic text-sm">"{settings.chairmanMsg.substring(0, 100)}..."</p>
-             </div>
-          </div>
-       </section>
-    </div>
-  );
-
-  const LayoutFocus = () => (
-    <div className="bg-white animate-fade-in">
-       <section className="max-w-7xl mx-auto px-4 py-24 text-center space-y-12">
-          <div className="space-y-4">
-             <h1 className="text-7xl md:text-9xl font-black text-gray-900 tracking-tighter">{settings.schoolName}</h1>
-             <div className="h-2 w-32 bg-emerald-600 mx-auto rounded-full"></div>
-             <p className="text-2xl text-gray-400 font-medium">{settings.tagline}</p>
-          </div>
-          <img src={settings.bannerImage} className="w-full h-[600px] object-cover rounded-[100px] shadow-2xl" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pt-24 text-left">
-             <div className="space-y-4">
-                <span className="text-5xl">🔭</span>
-                <h3 className="text-3xl font-black">আমাদের ভিশন</h3>
-                <p className="text-gray-500 leading-relaxed text-lg">আধুনিক শিক্ষার সাথে দ্বীনি শিক্ষার এক অপূর্ব মিলনস্থল তৈরীর লক্ষ্য আমাদের পথচলা।</p>
-             </div>
-             <div className="space-y-4">
-                <span className="text-5xl">🛡️</span>
-                <h3 className="text-3xl font-black">নৈতিক নিরাপত্তা</h3>
-                <p className="text-gray-500 leading-relaxed text-lg">শিক্ষার্থীদের নৈতিক মানদণ্ড উন্নয়নে আমরা প্রতিদিন বিশেষ কার্যক্রম পরিচালনা করি।</p>
-             </div>
-             <div className="space-y-4">
-                <span className="text-5xl">🚀</span>
-                <h3 className="text-3xl font-black">স্মার্ট ফিউচার</h3>
-                <p className="text-gray-500 leading-relaxed text-lg">প্রযুক্তির সঠিক ব্যবহারের মাধ্যমে বিশ্বমানের মেধা হিসেবে গড়ে তোলা আমাদের প্রতিশ্রুতি।</p>
-             </div>
-          </div>
-       </section>
-    </div>
-  );
+  // Slider Logic
+  useEffect(() => {
+    if (settings.sliderImages.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentSlide(prev => (prev + 1) % settings.sliderImages.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [settings.sliderImages]);
 
   return (
-    <div>
-      {settings.homeLayout === 'classic' && <LayoutClassic />}
-      {settings.homeLayout === 'modern' && <LayoutModern />}
-      {settings.homeLayout === 'focus' && <LayoutFocus />}
+    <div className="animate-fade-in bg-white">
+      {/* 1. Smooth Slideshow Section */}
+      <section className="relative h-[400px] md:h-[600px] w-full overflow-hidden bg-emerald-950">
+        {settings.sliderImages.map((img, idx) => (
+          <div
+            key={img.id}
+            className={`absolute inset-0 transition-all duration-1000 ease-in-out transform ${idx === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
+          >
+            <img src={img.url} alt={img.title} className="w-full h-full object-cover opacity-60" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center text-white px-4 max-w-4xl">
+                <h2 className="text-3xl md:text-6xl font-black mb-4 drop-shadow-2xl animate-fade-in">{img.title}</h2>
+                <div className="h-1.5 w-24 bg-emerald-500 mx-auto rounded-full mb-8"></div>
+                <div className="flex justify-center gap-4">
+                  <Link to="/admission" className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3 rounded-2xl font-black transition-all shadow-xl">অনলাইন ভর্তি</Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+        {/* Slider Controls */}
+        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 z-20">
+          {settings.sliderImages.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentSlide(idx)}
+              className={`h-2 rounded-full transition-all ${idx === currentSlide ? 'w-10 bg-emerald-500' : 'w-2 bg-white/50'}`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* 2. Scrolling Headline Notice */}
+      <div className="bg-emerald-800 py-3 overflow-hidden border-b border-emerald-700 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 flex items-center">
+          <div className="bg-amber-500 text-white text-[10px] md:text-xs font-black px-3 py-1 rounded-full whitespace-nowrap z-10 shadow-sm mr-4">সংবাদ:</div>
+          <div className="flex-1 overflow-hidden relative h-6">
+            <div className="animate-notice whitespace-nowrap absolute top-0 text-white font-bold text-sm md:text-base">
+              {settings.scrollingHeadline} ••• {settings.scrollingHeadline}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Chairman & Principal Messages (Side by Side) */}
+      <section className="py-20 bg-gray-50/50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            
+            {/* Chairman Message Card (Left) */}
+            <div className="bg-white p-8 md:p-12 rounded-[48px] shadow-sm border border-emerald-50 relative overflow-hidden group hover:shadow-2xl transition-all">
+               <div className="absolute top-0 right-0 p-8 opacity-5 -mr-4 -mt-4"><i className="fas fa-landmark text-8xl text-emerald-900"></i></div>
+               <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                  <img src={settings.chairmanPhoto} className="w-32 h-32 md:w-44 md:h-44 rounded-[40px] object-cover border-4 border-emerald-50 shadow-xl" alt="Chairman" />
+                  <div>
+                    <span className="text-emerald-600 font-black text-xs uppercase tracking-widest mb-2 block">বাণী</span>
+                    <h3 className="text-2xl font-black text-gray-800 mb-2">{settings.chairmanName}</h3>
+                    <p className="text-emerald-500 font-bold text-sm mb-4">সম্মানিত চেয়ারম্যান</p>
+                    <div className="h-1 w-12 bg-emerald-200 rounded-full"></div>
+                  </div>
+               </div>
+               <div className="mt-8 italic text-gray-600 leading-relaxed text-lg border-l-4 border-emerald-100 pl-6">
+                 "{settings.chairmanMsg}"
+               </div>
+            </div>
+
+            {/* Principal Message Card (Right) */}
+            <div className="bg-white p-8 md:p-12 rounded-[48px] shadow-sm border border-emerald-50 relative overflow-hidden group hover:shadow-2xl transition-all">
+               <div className="absolute top-0 right-0 p-8 opacity-5 -mr-4 -mt-4"><i className="fas fa-graduation-cap text-8xl text-emerald-900"></i></div>
+               <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                  <img src={settings.principalPhoto} className="w-32 h-32 md:w-44 md:h-44 rounded-[40px] object-cover border-4 border-emerald-50 shadow-xl" alt="Principal" />
+                  <div>
+                    <span className="text-emerald-600 font-black text-xs uppercase tracking-widest mb-2 block">বাণী</span>
+                    <h3 className="text-2xl font-black text-gray-800 mb-2">{settings.principalName}</h3>
+                    <p className="text-emerald-500 font-bold text-sm mb-4">প্রধান শিক্ষক</p>
+                    <div className="h-1 w-12 bg-emerald-200 rounded-full"></div>
+                  </div>
+               </div>
+               <div className="mt-8 italic text-gray-600 leading-relaxed text-lg border-l-4 border-emerald-100 pl-6">
+                 "{settings.principalMsg}"
+               </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Features or Goals */}
+      <section className="py-20 max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+         <div className="p-10 rounded-[48px] bg-white border border-gray-100 hover:shadow-xl transition-all">
+            <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl"><i className="fas fa-book-open"></i></div>
+            <h4 className="font-black text-xl mb-4 text-gray-800">আধুনিক শিক্ষা</h4>
+            <p className="text-gray-500 text-sm leading-relaxed">জাতীয় কারিকুলাম ও প্রযুক্তি নির্ভর আধুনিক পাঠদান পদ্ধতি।</p>
+         </div>
+         <div className="p-10 rounded-[48px] bg-white border border-gray-100 hover:shadow-xl transition-all">
+            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl"><i className="fas fa-mosque"></i></div>
+            <h4 className="font-black text-xl mb-4 text-gray-800">ইসলামী পরিবেশ</h4>
+            <p className="text-gray-500 text-sm leading-relaxed">নৈতিকতা ও ধর্মীয় মূল্যবোধ চর্চার নিরাপদ কেন্দ্র।</p>
+         </div>
+         <div className="p-10 rounded-[48px] bg-white border border-gray-100 hover:shadow-xl transition-all">
+            <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl"><i className="fas fa-microchip"></i></div>
+            <h4 className="font-black text-xl mb-4 text-gray-800">ডিজিটাল কন্টেন্ট</h4>
+            <p className="text-gray-500 text-sm leading-relaxed">কম্পিউটার ল্যাব ও ডিজিটাল মাল্টিমিডিয়া ক্লাসরুম।</p>
+         </div>
+      </section>
     </div>
   );
 };

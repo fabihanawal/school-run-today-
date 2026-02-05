@@ -41,6 +41,12 @@ export interface GalleryImage {
   title: string;
 }
 
+export interface SliderImage {
+  id: string;
+  url: string;
+  title: string;
+}
+
 export interface SiteSettings {
   schoolName: string;
   tagline: string;
@@ -54,7 +60,9 @@ export interface SiteSettings {
   chairmanMsg: string;
   chairmanPhoto: string;
   bannerImage: string;
-  homeLayout: 'classic' | 'modern' | 'focus'; // New field for dynamic layout
+  scrollingHeadline: string;
+  sliderImages: SliderImage[];
+  homeLayout: 'classic' | 'modern' | 'focus';
 }
 
 export interface SubjectMark {
@@ -72,4 +80,28 @@ export interface TermResult {
   finalGrade: string;
   isPassed: boolean;
   date: string;
+}
+
+export interface AdmissionSubmission {
+  id: string;
+  name: string;
+  fatherName: string;
+  motherName: string;
+  birthDate: string;
+  targetClass: string;
+  gender: string;
+  phone: string;
+  address: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  appliedDate: string;
+}
+
+export interface Student {
+  id: string;
+  name: string;
+  class: string;
+  roll: string;
+  guardianPhone: string;
+  studentPhoto?: string;
+  academicResults?: TermResult[];
 }

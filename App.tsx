@@ -28,24 +28,18 @@ const App: React.FC = () => {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  // Global Sync Logic with 503 Retry
   useEffect(() => {
     const fetchServerData = async (retries = 3, delay = 1500) => {
       try {
         const response = await fetch('api.php', { cache: 'no-store' });
-        
         if (response.status === 503 && retries > 0) {
-          console.warn(`Server busy. Retrying in ${delay}ms...`);
           setTimeout(() => fetchServerData(retries - 1, delay * 2), delay);
           return;
         }
-
         if (!response.ok) return;
-
         const data = await response.json();
         if (data.status === 'new' || data.error) return;
 
-        // Sync all local storages with server data
         const syncMap = {
           'sia_site_settings': data.settings,
           'sia_notices': data.notices,
@@ -53,16 +47,16 @@ const App: React.FC = () => {
           'sia_gallery': data.gallery,
           'sia_courses': data.courses,
           'sia_students_db': data.students,
-          'sia_quizzes': data.quizzes
+          'sia_quizzes': data.quizzes,
+          'sia_admissions': data.admissions
         };
 
         Object.entries(syncMap).forEach(([key, val]) => {
           if (val) localStorage.setItem(key, JSON.stringify(val));
         });
-
-        console.log("☁️ All data successfully synced from server.");
+        console.log("☁️ All data synced.");
       } catch (err) {
-        console.log("ℹ️ Running in local mode.");
+        console.log("Local mode active.");
       }
     };
     fetchServerData();
