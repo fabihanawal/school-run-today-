@@ -51,8 +51,12 @@ const Admission: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    if (!files.studentPhoto || !files.birthCertificate) {
+      alert('শিক্ষার্থীর ছবি এবং জন্ম সনদ আপলোড করা বাধ্যতামূলক।');
+      return;
+    }
     
+    setIsSubmitting(true);
     const newSubmission: AdmissionSubmission = {
       ...formData,
       ...files,
@@ -67,7 +71,6 @@ const Admission: React.FC = () => {
       
       alert('ভর্তি আবেদন সফলভাবে জমা হয়েছে! শীঘ্রই আপনার সাথে যোগাযোগ করা হবে।');
       
-      // Reset Form
       setFormData({
         name: '', fatherName: '', motherName: '', birthDate: '',
         targetClass: '১ম', gender: 'ছেলে', phone: '', address: ''
@@ -86,160 +89,99 @@ const Admission: React.FC = () => {
         <h1 className="text-4xl font-black text-emerald-800 text-center mb-12 uppercase tracking-tighter">অনলাইন ভর্তি ফরম</h1>
         
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Main Form Fields */}
           <div className="lg:col-span-2 space-y-8">
-            <div className="bg-emerald-50 p-10 rounded-[48px] shadow-inner space-y-6">
+            <div className="bg-emerald-50 p-8 rounded-[48px] shadow-inner space-y-6">
               <h3 className="text-xl font-black text-emerald-900 border-b border-emerald-200 pb-4 mb-6">১. ব্যক্তিগত তথ্য</h3>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-black text-emerald-900 mb-2 uppercase ml-2">শিক্ষার্থীর পূর্ণ নাম</label>
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-emerald-900 uppercase ml-2">শিক্ষার্থীর পূর্ণ নাম</label>
                   <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-4 rounded-3xl bg-white border-none shadow-sm focus:ring-4 focus:ring-emerald-200 outline-none" placeholder="যেমন: মোঃ আব্দুল্লাহ" />
                 </div>
-                <div>
-                  <label className="block text-xs font-black text-emerald-900 mb-2 uppercase ml-2">জন্ম তারিখ</label>
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-emerald-900 uppercase ml-2">জন্ম তারিখ</label>
                   <input type="date" required value={formData.birthDate} onChange={e => setFormData({...formData, birthDate: e.target.value})} className="w-full p-4 rounded-3xl bg-white border-none shadow-sm focus:ring-4 focus:ring-emerald-200 outline-none" />
                 </div>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-black text-emerald-900 mb-2 uppercase ml-2">পিতার নাম</label>
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-emerald-900 uppercase ml-2">পিতার নাম</label>
                   <input type="text" required value={formData.fatherName} onChange={e => setFormData({...formData, fatherName: e.target.value})} className="w-full p-4 rounded-3xl bg-white border-none shadow-sm focus:ring-4 focus:ring-emerald-200 outline-none" />
                 </div>
-                <div>
-                  <label className="block text-xs font-black text-emerald-900 mb-2 uppercase ml-2">মাতার নাম</label>
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-emerald-900 uppercase ml-2">মাতার নাম</label>
                   <input type="text" required value={formData.motherName} onChange={e => setFormData({...formData, motherName: e.target.value})} className="w-full p-4 rounded-3xl bg-white border-none shadow-sm focus:ring-4 focus:ring-emerald-200 outline-none" />
                 </div>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-xs font-black text-emerald-900 mb-2 uppercase ml-2">ভর্তির শ্রেণি</label>
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-emerald-900 uppercase ml-2">ভর্তির শ্রেণি</label>
                   <select value={formData.targetClass} onChange={e => setFormData({...formData, targetClass: e.target.value})} className="w-full p-4 rounded-3xl bg-white border-none shadow-sm outline-none">
                     <option>প্লে</option><option>নার্সারি</option><option>১ম</option><option>২য়</option><option>৩য়</option><option>৪র্থ</option><option>৫ম</option><option>৬ষ্ঠ</option><option>৭ম</option><option>৮ম</option><option>৯ম</option><option>১০ম</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-black text-emerald-900 mb-2 uppercase ml-2">লিঙ্গ</label>
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-emerald-900 uppercase ml-2">লিঙ্গ</label>
                   <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className="w-full p-4 rounded-3xl bg-white border-none shadow-sm outline-none">
                     <option>ছেলে</option><option>মেয়ে</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-black text-emerald-900 mb-2 uppercase ml-2">মোবাইল নম্বর</label>
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-emerald-900 uppercase ml-2">মোবাইল নম্বর</label>
                   <input type="tel" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full p-4 rounded-3xl bg-white border-none shadow-sm outline-none" placeholder="017xxxxxxxx" />
                 </div>
               </div>
-
-              <div>
-                <label className="block text-xs font-black text-emerald-900 mb-2 uppercase ml-2">স্থায়ী ঠিকানা</label>
+              <div className="space-y-1">
+                <label className="text-xs font-black text-emerald-900 uppercase ml-2">স্থায়ী ঠিকানা</label>
                 <textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full p-4 rounded-3xl bg-white border-none shadow-sm outline-none h-24"></textarea>
               </div>
             </div>
 
-            <div className="bg-amber-50 p-10 rounded-[48px] shadow-inner space-y-8">
+            <div className="bg-amber-50 p-8 rounded-[48px] shadow-inner space-y-8">
               <h3 className="text-xl font-black text-amber-900 border-b border-amber-200 pb-4 mb-6">২. প্রয়োজনীয় কাগজপত্র আপলোড</h3>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Student Photo */}
-                <div className="space-y-3">
-                  <label className="block text-xs font-black text-amber-900 mb-2 uppercase ml-2">শিক্ষার্থীর পাসপোর্ট ছবি (অনুমোদিত সাইজ: ২ এমবি)</label>
-                  <div className="relative group">
-                    <input type="file" accept="image/*" required onChange={(e) => handleFileChange(e, 'studentPhoto')} className="hidden" id="studentPhoto" />
-                    <label htmlFor="studentPhoto" className="flex flex-col items-center justify-center border-4 border-dashed border-amber-200 bg-white rounded-3xl p-6 cursor-pointer hover:bg-amber-100 transition h-48 overflow-hidden">
-                      {files.studentPhoto ? <img src={files.studentPhoto} className="h-full object-cover rounded-xl" /> : (
-                        <>
-                          <i className="fas fa-camera text-3xl text-amber-400 mb-2"></i>
-                          <span className="text-[10px] font-black text-amber-600 uppercase">ছবি সিলেক্ট করুন</span>
-                        </>
-                      )}
-                    </label>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-amber-900 uppercase ml-2">শিক্ষার্থীর পাসপোর্ট ছবি *</label>
+                  <div className="relative h-40 border-4 border-dashed border-amber-200 bg-white rounded-3xl overflow-hidden hover:bg-amber-100 transition">
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'studentPhoto')} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                    {files.studentPhoto ? <img src={files.studentPhoto} className="w-full h-full object-contain" /> : <div className="h-full flex flex-col items-center justify-center text-amber-400"><i className="fas fa-camera text-2xl mb-1"></i><span className="text-[10px] font-bold">সিলেক্ট করুন</span></div>}
                   </div>
                 </div>
-
-                {/* Birth Certificate */}
-                <div className="space-y-3">
-                  <label className="block text-xs font-black text-amber-900 mb-2 uppercase ml-2">জন্ম নিবন্ধন সনদ (ছবি/স্ক্যান কপি)</label>
-                  <div className="relative group">
-                    <input type="file" accept="image/*" required onChange={(e) => handleFileChange(e, 'birthCertificate')} className="hidden" id="birthCert" />
-                    <label htmlFor="birthCert" className="flex flex-col items-center justify-center border-4 border-dashed border-amber-200 bg-white rounded-3xl p-6 cursor-pointer hover:bg-amber-100 transition h-48 overflow-hidden">
-                      {files.birthCertificate ? <img src={files.birthCertificate} className="h-full object-cover rounded-xl" /> : (
-                        <>
-                          <i className="fas fa-file-contract text-3xl text-amber-400 mb-2"></i>
-                          <span className="text-[10px] font-black text-amber-600 uppercase">ফাইল সিলেক্ট করুন</span>
-                        </>
-                      )}
-                    </label>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-amber-900 uppercase ml-2">জন্ম নিবন্ধন সনদ *</label>
+                  <div className="relative h-40 border-4 border-dashed border-amber-200 bg-white rounded-3xl overflow-hidden hover:bg-amber-100 transition">
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'birthCertificate')} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                    {files.birthCertificate ? <img src={files.birthCertificate} className="w-full h-full object-contain" /> : <div className="h-full flex flex-col items-center justify-center text-amber-400"><i className="fas fa-file-contract text-2xl mb-1"></i><span className="text-[10px] font-bold">সিলেক্ট করুন</span></div>}
                   </div>
                 </div>
-
-                {/* Father Photo */}
-                <div className="space-y-3">
-                  <label className="block text-xs font-black text-amber-900 mb-2 uppercase ml-2">পিতার পাসপোর্ট সাইজ ছবি</label>
-                  <div className="relative group">
-                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'fatherPhoto')} className="hidden" id="fatherPhoto" />
-                    <label htmlFor="fatherPhoto" className="flex flex-col items-center justify-center border-4 border-dashed border-amber-200 bg-white rounded-3xl p-6 cursor-pointer hover:bg-amber-100 transition h-48 overflow-hidden">
-                      {files.fatherPhoto ? <img src={files.fatherPhoto} className="h-full object-cover rounded-xl" /> : (
-                        <>
-                          <i className="fas fa-user text-3xl text-amber-400 mb-2"></i>
-                          <span className="text-[10px] font-black text-amber-600 uppercase">সিলেক্ট করুন</span>
-                        </>
-                      )}
-                    </label>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-amber-900 uppercase ml-2">পিতার ছবি (ঐচ্ছিক)</label>
+                  <div className="relative h-40 border-4 border-dashed border-amber-200 bg-white rounded-3xl overflow-hidden hover:bg-amber-100 transition">
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'fatherPhoto')} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                    {files.fatherPhoto ? <img src={files.fatherPhoto} className="w-full h-full object-contain" /> : <div className="h-full flex flex-col items-center justify-center text-amber-400"><i className="fas fa-user text-2xl mb-1"></i><span className="text-[10px] font-bold">সিলেক্ট করুন</span></div>}
                   </div>
                 </div>
-
-                {/* Mother Photo */}
-                <div className="space-y-3">
-                  <label className="block text-xs font-black text-amber-900 mb-2 uppercase ml-2">মাতার পাসপোর্ট সাইজ ছবি</label>
-                  <div className="relative group">
-                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'motherPhoto')} className="hidden" id="motherPhoto" />
-                    <label htmlFor="motherPhoto" className="flex flex-col items-center justify-center border-4 border-dashed border-amber-200 bg-white rounded-3xl p-6 cursor-pointer hover:bg-amber-100 transition h-48 overflow-hidden">
-                      {files.motherPhoto ? <img src={files.motherPhoto} className="h-full object-cover rounded-xl" /> : (
-                        <>
-                          <i className="fas fa-user-female text-3xl text-amber-400 mb-2"></i>
-                          <span className="text-[10px] font-black text-amber-600 uppercase">সিলেক্ট করুন</span>
-                        </>
-                      )}
-                    </label>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-amber-900 uppercase ml-2">মাতার ছবি (ঐচ্ছিক)</label>
+                  <div className="relative h-40 border-4 border-dashed border-amber-200 bg-white rounded-3xl overflow-hidden hover:bg-amber-100 transition">
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'motherPhoto')} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                    {files.motherPhoto ? <img src={files.motherPhoto} className="w-full h-full object-contain" /> : <div className="h-full flex flex-col items-center justify-center text-amber-400"><i className="fas fa-user text-2xl mb-1"></i><span className="text-[10px] font-bold">সিলেক্ট করুন</span></div>}
                   </div>
                 </div>
               </div>
             </div>
 
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className={`w-full ${isSubmitting ? 'bg-gray-400' : 'bg-emerald-600 hover:bg-emerald-700'} text-white font-black py-5 rounded-3xl transition-all shadow-xl text-xl transform active:scale-95`}
-            >
+            <button type="submit" disabled={isSubmitting} className={`w-full ${isSubmitting ? 'bg-gray-400' : 'bg-emerald-600 hover:bg-emerald-700'} text-white font-black py-5 rounded-3xl transition-all shadow-xl text-xl transform active:scale-95`}>
               {isSubmitting ? 'প্রসেসিং হচ্ছে...' : 'আবেদন জমা দিন ➔'}
             </button>
           </div>
 
-          {/* Guidelines Sidebar */}
           <div className="space-y-8">
             <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-xl sticky top-28">
               <h3 className="text-xl font-black text-emerald-900 mb-6 uppercase tracking-tighter">ভর্তির নিয়মাবলী</h3>
               <ul className="text-sm space-y-6 text-gray-700 font-medium">
-                <li className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-black flex-shrink-0">১</div>
-                  <p>অনলাইন ফরমটি নির্ভুলভাবে পূরণ করুন। সকল তথ্য বাংলা বা ইংরেজিতে হতে হবে।</p>
-                </li>
-                <li className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-black flex-shrink-0">২</div>
-                  <p>শিক্ষার্থীর ১ কপি পাসপোর্ট সাইজ ছবি এবং জন্ম নিবন্ধনের রঙিন স্ক্যান কপি আপলোড করা বাধ্যতামূলক।</p>
-                </li>
-                <li className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-black flex-shrink-0">৩</div>
-                  <p>পিতা ও মাতার ছবি ঐচ্ছিক তবে প্রদান করা উৎসাহিত করা হচ্ছে।</p>
-                </li>
-                <li className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-black flex-shrink-0">৪</div>
-                  <p>আবেদন যাচাইয়ের পর অফিস থেকে আপনাকে সাক্ষাৎকারের জন্য কল করা হবে।</p>
-                </li>
+                <li className="flex gap-4"><div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-black flex-shrink-0">১</div><p>ফরমটি নির্ভুলভাবে পূরণ করুন।</p></li>
+                <li className="flex gap-4"><div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-black flex-shrink-0">২</div><p>শিক্ষার্থীর ছবি এবং জন্ম সনদ বাধ্যতামূলক।</p></li>
               </ul>
-              
               <div className="mt-10 p-5 bg-red-50 rounded-2xl border border-red-100">
                 <p className="text-[10px] font-black text-red-600 uppercase mb-1">হেল্পলাইন</p>
                 <p className="text-sm font-black text-red-800">০১৭১৬১৩৭৭০৮</p>
