@@ -20,7 +20,7 @@ const AdminDashboard: React.FC = () => {
     return saved ? JSON.parse(saved) : {
       schoolName: 'শিবগঞ্জ ইসলামী একাডেমী', tagline: 'সততা, নৈতিকতা ও শিক্ষার সমন্বয়',
       phone1: '০১৭১৬১৩৭৭০৮', email: 's124611@gmail.com', address: 'শিবগঞ্জ, চাঁপাইনবাবগঞ্জ',
-      principalName: 'মোহা: ইব্রাহিম খলিল', principalMsg: 'আদর্শ মানুষ গড়াই আমাদের লক্ষ্য।',
+      principalName: 'মোহা: ইব্রাহিম খলিল', principalMsg: 'আదర్శ মানুষ গড়াই আমাদের লক্ষ্য।',
       principalPhoto: 'https://picsum.photos/400/400?principal',
       chairmanName: 'আলহাজ্ব মোঃ জয়নাল আবেদিন', chairmanMsg: 'শিক্ষাই জাতির মেরুদণ্ড, আর নৈতিকতা তার ভিত্তি।',
       chairmanPhoto: 'https://picsum.photos/400/400?chairman',
@@ -33,6 +33,9 @@ const AdminDashboard: React.FC = () => {
       homeLayout: 'classic'
     };
   });
+
+  // Quiz Editor State
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
 
   // UI / Modal States
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -82,6 +85,13 @@ const AdminDashboard: React.FC = () => {
   const openForm = (mode: 'ADD' | 'EDIT', item: any = null) => {
     setEditMode(mode);
     setEditingItem(item);
+    if (activeTab === 'quizzes') {
+      setQuizQuestions(item?.questions || [{ 
+        question: '', 
+        options: ['', '', '', ''], 
+        correctIndex: 0 
+      }]);
+    }
     setIsFormOpen(true);
   };
 
@@ -93,27 +103,18 @@ const AdminDashboard: React.FC = () => {
 
     let updatedItem = { ...editingItem, ...data, id };
     
-    // File processing for Admissions and Staff if applicable
-    if (activeTab === 'admissions' || activeTab === 'staff' || activeTab === 'students') {
-      const fileInputs = (e.currentTarget as HTMLFormElement).querySelectorAll('input[type="file"]');
-      for (const input of Array.from(fileInputs) as HTMLInputElement[]) {
-        if (input.files?.[0]) {
-          const base64 = await toBase64(input.files[0]);
-          updatedItem[input.name] = base64;
-        }
+    // File processing
+    const fileInputs = (e.currentTarget as HTMLFormElement).querySelectorAll('input[type="file"]');
+    for (const input of Array.from(fileInputs) as HTMLInputElement[]) {
+      if (input.files?.[0]) {
+        const base64 = await toBase64(input.files[0]);
+        updatedItem[input.name] = base64;
       }
     }
 
-    // Quiz Specific Logic: Parse JSON Questions
+    // Quiz Questions logic
     if (activeTab === 'quizzes') {
-      try {
-        const questionsJson = fd.get('questionsJson') as string;
-        updatedItem.questions = JSON.parse(questionsJson);
-        delete updatedItem.questionsJson; // Remove temp field
-      } catch (err) {
-        alert('কুইজের প্রশ্নগুলোর ফরম্যাট সঠিক নয়। দয়া করে JSON ফরম্যাট চেক করুন।');
-        return;
-      }
+      updatedItem.questions = quizQuestions;
     }
 
     switch(activeTab) {
@@ -149,10 +150,58 @@ const AdminDashboard: React.FC = () => {
     { id: 'database', label: 'সার্ভার সিঙ্ক', icon: '☁️' },
   ];
 
+  const handleLeadershipPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'chairman' | 'principal') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const base64 = await toBase64(file);
+      if (type === 'chairman') {
+        setSettings({ ...settings, chairmanPhoto: base64 });
+      } else {
+        setSettings({ ...settings, principalPhoto: base64 });
+      }
+    }
+  };
+
+  const handleSliderPhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const base64 = await toBase64(file);
+      const url = base64;
+      setSettings({...settings, sliderImages: [...settings.sliderImages, {id: Date.now().toString(), url, title: 'নতুন স্লাইডার'}]});
+    }
+  };
+
+  // Quiz Question Builder Functions
+  const addQuestion = () => {
+    setQuizQuestions([...quizQuestions, { question: '', options: ['', '', '', ''], correctIndex: 0 }]);
+  };
+
+  const removeQuestion = (index: number) => {
+    setQuizQuestions(quizQuestions.filter((_, i) => i !== index));
+  };
+
+  const updateQuestionText = (index: number, text: string) => {
+    const newQuestions = [...quizQuestions];
+    newQuestions[index].question = text;
+    setQuizQuestions(newQuestions);
+  };
+
+  const updateOptionText = (qIndex: number, oIndex: number, text: string) => {
+    const newQuestions = [...quizQuestions];
+    newQuestions[qIndex].options[oIndex] = text;
+    setQuizQuestions(newQuestions);
+  };
+
+  const setCorrectOption = (qIndex: number, oIndex: number) => {
+    const newQuestions = [...quizQuestions];
+    newQuestions[qIndex].correctIndex = oIndex;
+    setQuizQuestions(newQuestions);
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen py-8 pb-20">
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Sidebar Nav */}
+        {/* Sidebar */}
         <div className="lg:col-span-1">
           <div className="bg-white p-6 rounded-[32px] shadow-sm sticky top-24 border border-gray-100">
             <h1 className="font-black text-emerald-800 text-lg uppercase mb-8 text-center pb-4 border-b">SIA Dashboard</h1>
@@ -168,69 +217,20 @@ const AdminDashboard: React.FC = () => {
 
         {/* Content Area */}
         <div className="lg:col-span-3 space-y-6">
-          
-          {/* Section Header */}
-          {['admissions', 'students', 'staff', 'notices', 'courses', 'gallery', 'quizzes'].includes(activeTab) && (
-            <div className="bg-white p-6 rounded-[32px] shadow-sm flex justify-between items-center border border-emerald-50 mb-6">
-               <h2 className="text-xl font-black text-gray-800 flex items-center gap-3">
-                 {menuItems.find(m => m.id === activeTab)?.icon} {menuItems.find(m => m.id === activeTab)?.label}
-               </h2>
-               <button onClick={() => openForm('ADD')} className="bg-emerald-600 text-white px-6 py-2.5 rounded-2xl font-black shadow-lg hover:bg-emerald-700 transition text-sm">নতুন যোগ করুন +</button>
-            </div>
-          )}
-
-          {/* List Views */}
-          {['admissions', 'students', 'staff', 'notices', 'courses', 'gallery', 'quizzes'].includes(activeTab) && (
-             <div className="space-y-3 animate-fade-in">
-                {(activeTab === 'admissions' ? admissions :
-                  activeTab === 'students' ? students :
-                  activeTab === 'staff' ? staff :
-                  activeTab === 'notices' ? notices :
-                  activeTab === 'courses' ? courses :
-                  activeTab === 'gallery' ? gallery : quizzes).map((item: any) => (
-                    <div key={item.id} className="bg-white p-4 rounded-[32px] shadow-sm border border-gray-50 flex justify-between items-center group hover:border-emerald-200 transition-all">
-                      <div className="flex items-center gap-4">
-                         <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center font-black text-emerald-600 overflow-hidden shadow-inner">
-                           {(item.studentPhoto || item.photo || item.url) ? 
-                             <img src={item.studentPhoto || item.photo || item.url} className="w-full h-full object-cover" /> : 
-                             <i className={`fas ${activeTab === 'quizzes' ? 'fa-brain' : 'fa-file-alt'}`}></i>}
-                         </div>
-                         <div>
-                           <h4 className="font-black text-gray-800 text-sm">{item.name || item.title}</h4>
-                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                             {activeTab === 'quizzes' ? `শ্রেণি: ${item.class} | বিষয়: ${item.subject}` :
-                              activeTab === 'admissions' ? `শ্রেণি: ${item.targetClass} | তারিখ: ${item.appliedDate}` : 
-                              activeTab === 'students' ? `আইডি: ${item.id} | রোল: ${item.roll}` : item.designation || 'আইটেম'}
-                           </p>
-                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                         <button onClick={() => openForm('EDIT', item)} className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center text-xs"><i className="fas fa-edit"></i></button>
-                         <button onClick={() => deleteItem(item.id, (activeTab === 'quizzes' ? quizzes : activeTab === 'admissions' ? admissions : activeTab === 'students' ? students : activeTab === 'staff' ? staff : activeTab === 'notices' ? notices : activeTab === 'courses' ? courses : gallery), (activeTab === 'quizzes' ? setQuizzes : activeTab === 'admissions' ? setAdmissions : activeTab === 'students' ? setStudents : activeTab === 'staff' ? setStaff : activeTab === 'notices' ? setNotices : activeTab === 'courses' ? setCourses : setGallery))} className="w-9 h-9 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition flex items-center justify-center text-xs"><i className="fas fa-trash"></i></button>
-                      </div>
-                    </div>
-                ))}
-             </div>
-          )}
-
-          {/* Homepage Content Control */}
           {activeTab === 'home_content' && (
             <div className="space-y-8 animate-fade-in">
               {/* Slider Controller */}
               <div className="bg-white p-8 rounded-[40px] shadow-sm border border-emerald-50">
                 <h3 className="text-xl font-black text-emerald-800 mb-6 flex items-center gap-2"><i className="fas fa-images"></i> স্লাইডার কন্ট্রোল</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-6 rounded-3xl mb-8">
-                  <input id="slideUrl" placeholder="ইমেজ URL (যেমন: https://...)" className="p-4 rounded-xl border bg-white text-xs outline-none focus:ring-2 focus:ring-emerald-500" />
-                  <input id="slideTitle" placeholder="ছবির টাইটেল" className="p-4 rounded-xl border bg-white text-xs outline-none focus:ring-2 focus:ring-emerald-500" />
-                  <button onClick={() => {
-                    const url = (document.getElementById('slideUrl') as HTMLInputElement).value;
-                    const title = (document.getElementById('slideTitle') as HTMLInputElement).value;
-                    if(url) {
-                      setSettings({...settings, sliderImages: [...settings.sliderImages, {id: Date.now().toString(), url, title}]});
-                      (document.getElementById('slideUrl') as HTMLInputElement).value = '';
-                      (document.getElementById('slideTitle') as HTMLInputElement).value = '';
-                    }
-                  }} className="md:col-span-2 bg-emerald-600 text-white p-4 rounded-xl font-black shadow-lg hover:bg-emerald-700 transition">স্লাইডারে যুক্ত করুন</button>
+                  <div className="relative group w-full h-32 bg-white rounded-2xl border-2 border-dashed border-emerald-200 flex flex-col items-center justify-center overflow-hidden">
+                    <i className="fas fa-cloud-upload-alt text-2xl text-emerald-300"></i>
+                    <p className="text-[10px] font-black text-emerald-600 mt-2 uppercase tracking-widest">নতুন স্লাইডার ছবি আপলোড</p>
+                    <input type="file" onChange={handleSliderPhotoSelect} className="absolute inset-0 opacity-0 cursor-pointer" />
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <p className="text-xs text-gray-400 font-bold leading-relaxed">ছবি আপলোড করার সাথে সাথে তা স্লাইডারে যুক্ত হয়ে যাবে।</p>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {settings.sliderImages.map(img => (
@@ -250,21 +250,36 @@ const AdminDashboard: React.FC = () => {
                 <textarea value={settings.scrollingHeadline} onChange={e => setSettings({...settings, scrollingHeadline: e.target.value})} className="w-full p-6 rounded-[32px] bg-gray-50 border border-transparent outline-none font-bold text-gray-700 h-28 focus:bg-white focus:border-emerald-200" />
               </div>
 
-              {/* Messages Controller */}
+              {/* Messages & Photos Controller */}
               <div className="bg-white p-8 rounded-[40px] shadow-sm border border-emerald-50">
                 <h3 className="text-xl font-black text-emerald-800 mb-8 flex items-center gap-2"><i className="fas fa-pen-nib"></i> বাণী ও ছবি আপডেট</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Chairman Card */}
                   <div className="bg-amber-50/50 p-8 rounded-[40px] border border-amber-100 space-y-4">
                     <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">সম্মানিত চেয়ারম্যান</span>
-                    <input value={settings.chairmanName} onChange={e => setSettings({...settings, chairmanName: e.target.value})} className="w-full p-4 rounded-2xl border bg-white outline-none focus:ring-2 focus:ring-amber-500" placeholder="নাম" />
-                    <input value={settings.chairmanPhoto} onChange={e => setSettings({...settings, chairmanPhoto: e.target.value})} className="w-full p-4 rounded-2xl border bg-white outline-none focus:ring-2 focus:ring-amber-500" placeholder="ফটো URL" />
-                    <textarea value={settings.chairmanMsg} onChange={e => setSettings({...settings, chairmanMsg: e.target.value})} className="w-full p-4 rounded-2xl border bg-white outline-none h-32 focus:ring-2 focus:ring-amber-500" placeholder="বাণী" />
+                    <div className="relative group w-32 h-32 mx-auto mb-4 rounded-[32px] overflow-hidden border-4 border-white shadow-lg">
+                       <img src={settings.chairmanPhoto} className="w-full h-full object-cover" />
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                          <i className="fas fa-camera text-white"></i>
+                          <input type="file" onChange={(e) => handleLeadershipPhotoUpload(e, 'chairman')} className="absolute inset-0 opacity-0 cursor-pointer" />
+                       </div>
+                    </div>
+                    <input value={settings.chairmanName} onChange={e => setSettings({...settings, chairmanName: e.target.value})} className="w-full p-4 rounded-2xl border bg-white outline-none focus:ring-2 focus:ring-amber-500 font-bold" placeholder="নাম" />
+                    <textarea value={settings.chairmanMsg} onChange={e => setSettings({...settings, chairmanMsg: e.target.value})} className="w-full p-4 rounded-2xl border bg-white outline-none h-32 focus:ring-2 focus:ring-amber-500 font-bold" placeholder="বাণী" />
                   </div>
+
+                  {/* Principal Card */}
                   <div className="bg-emerald-50/50 p-8 rounded-[40px] border border-emerald-100 space-y-4">
                     <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">প্রধান শিক্ষক</span>
-                    <input value={settings.principalName} onChange={e => setSettings({...settings, principalName: e.target.value})} className="w-full p-4 rounded-2xl border bg-white outline-none focus:ring-2 focus:ring-emerald-500" placeholder="নাম" />
-                    <input value={settings.principalPhoto} onChange={e => setSettings({...settings, principalPhoto: e.target.value})} className="w-full p-4 rounded-2xl border bg-white outline-none focus:ring-2 focus:ring-emerald-500" placeholder="ফটো URL" />
-                    <textarea value={settings.principalMsg} onChange={e => setSettings({...settings, principalMsg: e.target.value})} className="w-full p-4 rounded-2xl border bg-white outline-none h-32 focus:ring-2 focus:ring-emerald-500" placeholder="বাণী" />
+                    <div className="relative group w-32 h-32 mx-auto mb-4 rounded-[32px] overflow-hidden border-4 border-white shadow-lg">
+                       <img src={settings.principalPhoto} className="w-full h-full object-cover" />
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                          <i className="fas fa-camera text-white"></i>
+                          <input type="file" onChange={(e) => handleLeadershipPhotoUpload(e, 'principal')} className="absolute inset-0 opacity-0 cursor-pointer" />
+                       </div>
+                    </div>
+                    <input value={settings.principalName} onChange={e => setSettings({...settings, principalName: e.target.value})} className="w-full p-4 rounded-2xl border bg-white outline-none focus:ring-2 focus:ring-emerald-500 font-bold" placeholder="নাম" />
+                    <textarea value={settings.principalMsg} onChange={e => setSettings({...settings, principalMsg: e.target.value})} className="w-full p-4 rounded-2xl border bg-white outline-none h-32 focus:ring-2 focus:ring-emerald-500 font-bold" placeholder="বাণী" />
                   </div>
                 </div>
               </div>
@@ -288,6 +303,48 @@ const AdminDashboard: React.FC = () => {
              </div>
           )}
 
+          {['admissions', 'students', 'staff', 'notices', 'courses', 'gallery', 'quizzes'].includes(activeTab) && (
+            <div className="bg-white p-6 rounded-[32px] shadow-sm flex justify-between items-center border border-emerald-50 mb-6">
+               <h2 className="text-xl font-black text-gray-800 flex items-center gap-3">
+                 {menuItems.find(m => m.id === activeTab)?.icon} {menuItems.find(m => m.id === activeTab)?.label}
+               </h2>
+               <button onClick={() => openForm('ADD')} className="bg-emerald-600 text-white px-6 py-2.5 rounded-2xl font-black shadow-lg hover:bg-emerald-700 transition text-sm">নতুন যোগ করুন +</button>
+            </div>
+          )}
+
+          {['admissions', 'students', 'staff', 'notices', 'courses', 'gallery', 'quizzes'].includes(activeTab) && (
+             <div className="space-y-3 animate-fade-in">
+                {(activeTab === 'admissions' ? admissions :
+                  activeTab === 'students' ? students :
+                  activeTab === 'staff' ? staff :
+                  activeTab === 'notices' ? notices :
+                  activeTab === 'courses' ? courses :
+                  activeTab === 'gallery' ? gallery : quizzes).map((item: any) => (
+                    <div key={item.id} className="bg-white p-4 rounded-[32px] shadow-sm border border-gray-50 flex justify-between items-center group hover:border-emerald-200 transition-all">
+                      <div className="flex items-center gap-4">
+                         <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center font-black text-emerald-600 overflow-hidden shadow-inner">
+                           {(item.studentPhoto || item.photo || item.url) ? 
+                             <img src={item.studentPhoto || item.photo || item.url} className="w-full h-full object-cover" /> : 
+                             <i className={`fas ${activeTab === 'quizzes' ? 'fa-brain' : activeTab === 'staff' ? 'fa-user-tie' : 'fa-file-alt'}`}></i>}
+                         </div>
+                         <div>
+                           <h4 className="font-black text-gray-800 text-sm">{item.name || item.title}</h4>
+                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                             {activeTab === 'staff' ? `${item.designation} | ${item.type === 'TEACHER' ? 'শিক্ষক' : 'কর্মচারী'}` :
+                              activeTab === 'quizzes' ? `শ্রেণি: ${item.class} | বিষয়: ${item.subject}` :
+                              activeTab === 'students' ? `আইডি: ${item.id} | রোল: ${item.roll}` : item.designation || 'আইটেম'}
+                           </p>
+                         </div>
+                      </div>
+                      <div className="flex gap-2">
+                         <button onClick={() => openForm('EDIT', item)} className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition flex items-center justify-center text-xs"><i className="fas fa-edit"></i></button>
+                         <button onClick={() => deleteItem(item.id, (activeTab === 'quizzes' ? quizzes : activeTab === 'admissions' ? admissions : activeTab === 'students' ? students : activeTab === 'staff' ? staff : activeTab === 'notices' ? notices : activeTab === 'courses' ? courses : gallery), (activeTab === 'quizzes' ? setQuizzes : activeTab === 'admissions' ? setAdmissions : activeTab === 'students' ? setStudents : activeTab === 'staff' ? setStaff : activeTab === 'notices' ? setNotices : activeTab === 'courses' ? setCourses : setGallery))} className="w-9 h-9 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition flex items-center justify-center text-xs"><i className="fas fa-trash"></i></button>
+                      </div>
+                    </div>
+                ))}
+             </div>
+          )}
+
           {activeTab === 'database' && (
             <div className="bg-white p-12 rounded-[48px] shadow-sm text-center border border-emerald-50 animate-fade-in">
               <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-[32px] flex items-center justify-center mx-auto mb-6 text-3xl shadow-inner"><i className="fas fa-cloud-upload-alt"></i></div>
@@ -305,37 +362,105 @@ const AdminDashboard: React.FC = () => {
       {/* Global Form Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-2xl rounded-[48px] shadow-2xl overflow-hidden animate-fade-in border border-emerald-50">
+          <div className="bg-white w-full max-w-4xl rounded-[48px] shadow-2xl overflow-hidden animate-fade-in border border-emerald-50">
             <div className="p-8 border-b flex justify-between items-center bg-gray-50/50">
               <h3 className="text-xl font-black text-emerald-900 uppercase tracking-tighter">
-                {activeTab === 'quizzes' ? 'কুইজ ম্যানেজমেন্ট' : (editMode === 'EDIT' ? 'তথ্য সংশোধন' : 'নতুন আইটেম')}
+                {activeTab === 'quizzes' ? 'কুইজ এডিটর' : (editMode === 'EDIT' ? 'তথ্য সংশোধন' : 'নতুন আইটেম')}
               </h3>
               <button onClick={() => setIsFormOpen(false)} className="text-gray-400 hover:text-red-500 text-2xl transition-colors">✕</button>
             </div>
             
             <form onSubmit={handleFormSubmit} className="p-10 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
-              
               {activeTab === 'quizzes' && (
-                <div className="space-y-6">
-                  <input name="title" defaultValue={editingItem?.title} placeholder="কুইজের শিরোনাম (উদা: ইসলামের ইতিহাস)" className="w-full p-4 rounded-2xl bg-gray-50 border border-transparent outline-none font-bold focus:bg-white focus:border-emerald-200" required />
-                  <div className="grid grid-cols-2 gap-4">
-                    <input name="subject" defaultValue={editingItem?.subject} placeholder="বিষয়" className="p-4 rounded-2xl bg-gray-50 border border-transparent outline-none font-bold focus:bg-white focus:border-emerald-200" required />
-                    <input name="class" defaultValue={editingItem?.class} placeholder="শ্রেণি" className="p-4 rounded-2xl bg-gray-50 border border-transparent outline-none font-bold focus:bg-white focus:border-emerald-200" required />
-                  </div>
-                  <div className="p-6 bg-emerald-50 rounded-[32px] border border-emerald-100">
-                    <p className="text-[10px] font-black text-emerald-600 uppercase mb-4 tracking-widest">প্রশ্নমালা (JSON Format)</p>
-                    <textarea 
-                      name="questionsJson" 
-                      defaultValue={editingItem?.questions ? JSON.stringify(editingItem.questions, null, 2) : '[\n  {\n    "question": "বাংলাদেশের রাজধানী কি?",\n    "options": ["ঢাকা", "খুলনা", "রাজশাহী", "সিলেট"],\n    "correctIndex": 0\n  }\n]'} 
-                      className="w-full h-64 p-5 rounded-2xl bg-white border border-emerald-100 font-mono text-xs outline-none focus:ring-4 focus:ring-emerald-100"
-                      required
-                    />
-                    <div className="mt-4 p-4 bg-white/50 rounded-xl border border-dashed border-emerald-200">
-                       <p className="text-[10px] text-emerald-800 leading-relaxed italic">
-                         * প্রশ্নগুলো সঠিক JSON ফরম্যাটে দিন। প্রতিটি অবজেক্টে `question`, `options` (অ্যারে) এবং `correctIndex` থাকতে হবে।
-                       </p>
+                <div className="space-y-8">
+                  {/* Basic Quiz Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="md:col-span-1">
+                       <label className="text-[10px] font-black text-gray-400 uppercase ml-2">কুইজের শিরোনাম</label>
+                       <input name="title" defaultValue={editingItem?.title} placeholder="যেমন: সাধারণ জ্ঞান" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold focus:bg-white" required />
+                    </div>
+                    <div>
+                       <label className="text-[10px] font-black text-gray-400 uppercase ml-2">বিষয়</label>
+                       <input name="subject" defaultValue={editingItem?.subject} placeholder="যেমন: ইসলাম শিক্ষা" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold focus:bg-white" required />
+                    </div>
+                    <div>
+                       <label className="text-[10px] font-black text-gray-400 uppercase ml-2">শ্রেণি</label>
+                       <input name="class" defaultValue={editingItem?.class} placeholder="যেমন: ৫ম" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold focus:bg-white" required />
                     </div>
                   </div>
+
+                  {/* Question Builder */}
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center border-b pb-4">
+                      <h4 className="font-black text-gray-800 uppercase tracking-tighter text-lg">প্রশ্নসমূহ</h4>
+                      <button type="button" onClick={addQuestion} className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-xs font-black shadow-sm">+ নতুন প্রশ্ন যোগ করুন</button>
+                    </div>
+
+                    <div className="space-y-12">
+                      {quizQuestions.map((q, qIndex) => (
+                        <div key={qIndex} className="bg-gray-50 p-8 rounded-[40px] border border-gray-100 relative group/q animate-fade-in">
+                          <button type="button" onClick={() => removeQuestion(qIndex)} className="absolute top-4 right-4 w-8 h-8 bg-red-50 text-red-500 rounded-full opacity-0 group-hover/q:opacity-100 transition-opacity"><i className="fas fa-trash-alt text-xs"></i></button>
+                          
+                          <div className="space-y-6">
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black text-emerald-600 uppercase ml-1">প্রশ্ন {qIndex + 1}</label>
+                              <input 
+                                value={q.question} 
+                                onChange={(e) => updateQuestionText(qIndex, e.target.value)} 
+                                placeholder="প্রশ্নটি এখানে লিখুন..." 
+                                className="w-full p-5 rounded-3xl bg-white border-none shadow-sm font-bold text-lg focus:ring-4 focus:ring-emerald-100 outline-none"
+                                required
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {q.options.map((opt: string, oIndex: number) => (
+                                <div key={oIndex} className={`relative flex items-center p-4 rounded-2xl border-2 transition-all ${q.correctIndex === oIndex ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg' : 'bg-white border-gray-100'}`}>
+                                  <input 
+                                    type="radio" 
+                                    name={`correct_${qIndex}`} 
+                                    checked={q.correctIndex === oIndex} 
+                                    onChange={() => setCorrectOption(qIndex, oIndex)}
+                                    className="mr-4 accent-emerald-300 w-5 h-5 cursor-pointer"
+                                  />
+                                  <input 
+                                    value={opt} 
+                                    onChange={(e) => updateOptionText(qIndex, oIndex, e.target.value)} 
+                                    placeholder={`অপশন ${String.fromCharCode(65 + oIndex)}`}
+                                    className={`w-full bg-transparent border-none outline-none font-bold text-sm ${q.correctIndex === oIndex ? 'placeholder-emerald-200' : 'text-gray-600'}`}
+                                    required
+                                  />
+                                  {q.correctIndex === oIndex && <span className="absolute -top-2 -right-2 bg-white text-emerald-600 w-6 h-6 rounded-full flex items-center justify-center shadow-md text-[10px]"><i className="fas fa-check"></i></span>}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'staff' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col items-center mb-8">
+                     <div className="w-32 h-32 rounded-[32px] bg-emerald-50 border-2 border-dashed border-emerald-200 overflow-hidden flex items-center justify-center relative group">
+                        {editingItem?.photo ? <img src={editingItem.photo} className="w-full h-full object-cover" /> : <i className="fas fa-camera text-2xl text-emerald-200"></i>}
+                        <input type="file" name="photo" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                     </div>
+                     <p className="text-[10px] font-black text-emerald-600 mt-2 uppercase">ছবি পরিবর্তন করুন</p>
+                  </div>
+                  <input name="name" defaultValue={editingItem?.name} placeholder="নাম" className="w-full p-4 rounded-2xl bg-gray-50 border border-transparent outline-none font-bold focus:bg-white focus:border-emerald-200" required />
+                  <div className="grid grid-cols-2 gap-4">
+                    <input name="designation" defaultValue={editingItem?.designation} placeholder="পদবী" className="p-4 rounded-2xl bg-gray-50 border border-transparent outline-none font-bold focus:bg-white focus:border-emerald-200" required />
+                    <select name="type" defaultValue={editingItem?.type || 'TEACHER'} className="p-4 rounded-2xl bg-gray-50 border border-transparent outline-none font-bold focus:bg-white focus:border-emerald-200">
+                      <option value="TEACHER">শিক্ষক</option>
+                      <option value="STAFF">কর্মচারী</option>
+                    </select>
+                  </div>
+                  <input name="mobile" defaultValue={editingItem?.mobile} placeholder="মোবাইল নম্বর" className="w-full p-4 rounded-2xl bg-gray-50 border border-transparent outline-none font-bold focus:bg-white focus:border-emerald-200" required />
+                  <input name="subject" defaultValue={editingItem?.subject} placeholder="বিষয় (যদি থাকে)" className="w-full p-4 rounded-2xl bg-gray-50 border border-transparent outline-none font-bold focus:bg-white focus:border-emerald-200" />
                 </div>
               )}
 
@@ -356,23 +481,17 @@ const AdminDashboard: React.FC = () => {
                         <input type="file" name="birthCertificate" accept="image/*" className="w-full text-xs" />
                       </div>
                    </div>
-                   <select name="status" defaultValue={editingItem?.status || 'PENDING'} className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold">
-                      <option value="PENDING">PENDING</option>
-                      <option value="APPROVED">APPROVED</option>
-                      <option value="REJECTED">REJECTED</option>
-                   </select>
                 </div>
               )}
 
               {activeTab === 'students' && (
                 <div className="space-y-6">
-                  <input name="id" defaultValue={editingItem?.id} placeholder="স্টুডেন্ট আইডি (Unique)" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required disabled={editMode === 'EDIT'} />
+                  <input name="id" defaultValue={editingItem?.id} placeholder="স্টুডেন্ট আইডি" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required disabled={editMode === 'EDIT'} />
                   <input name="name" defaultValue={editingItem?.name} placeholder="শিক্ষার্থীর পূর্ণ নাম" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
                   <div className="grid grid-cols-2 gap-4">
                     <input name="class" defaultValue={editingItem?.class} placeholder="শ্রেণি" className="p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
                     <input name="roll" defaultValue={editingItem?.roll} placeholder="রোল" className="p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
                   </div>
-                  <input name="guardianPhone" defaultValue={editingItem?.guardianPhone} placeholder="অভিভাবকের মোবাইল" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" />
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-gray-400 uppercase ml-2">শিক্ষার্থীর ছবি</label>
                     <input type="file" name="studentPhoto" accept="image/*" className="w-full text-xs" />
@@ -380,25 +499,18 @@ const AdminDashboard: React.FC = () => {
                 </div>
               )}
 
-              {['notices', 'gallery', 'staff', 'courses'].includes(activeTab) && (
+              {['notices', 'gallery', 'courses'].includes(activeTab) && (
                 <div className="space-y-4">
                   <input name="title" defaultValue={editingItem?.title || editingItem?.name} placeholder="টাইটেল / নাম" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold focus:bg-white" required />
                   {activeTab === 'gallery' && <input name="url" defaultValue={editingItem?.url} placeholder="ইমেজ URL" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold focus:bg-white" required />}
-                  {activeTab === 'staff' && (
-                    <>
-                      <input name="designation" defaultValue={editingItem?.designation} placeholder="পদবী" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
-                      <select name="type" defaultValue={editingItem?.type || 'TEACHER'} className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold">
-                        <option value="TEACHER">শিক্ষক</option>
-                        <option value="STAFF">সহায়ক কর্মী</option>
-                      </select>
-                      <input name="mobile" defaultValue={editingItem?.mobile} placeholder="মোবাইল নম্বর" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
-                    </>
-                  )}
                   {activeTab === 'courses' && <textarea name="description" defaultValue={editingItem?.description} placeholder="বর্ণনা" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none h-32 font-bold focus:bg-white" />}
                 </div>
               )}
               
-              <button type="submit" className="w-full bg-emerald-600 text-white p-5 rounded-[32px] font-black shadow-xl mt-6 transform transition active:scale-95 text-lg">সংরক্ষণ করুন</button>
+              <div className="sticky bottom-0 bg-white/80 backdrop-blur-md pt-4 pb-2 border-t mt-12 flex gap-4">
+                <button type="submit" className="flex-grow bg-emerald-600 text-white p-5 rounded-[32px] font-black shadow-xl transform transition active:scale-95 text-lg">সংরক্ষণ করুন</button>
+                <button type="button" onClick={() => setIsFormOpen(false)} className="px-8 bg-gray-100 text-gray-500 rounded-[32px] font-bold">বন্ধ করুন</button>
+              </div>
             </form>
           </div>
         </div>
