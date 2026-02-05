@@ -54,6 +54,7 @@ export interface SiteSettings {
   chairmanMsg: string;
   chairmanPhoto: string;
   bannerImage: string;
+  homeLayout: 'classic' | 'modern' | 'focus'; // New field for dynamic layout
 }
 
 export interface SubjectMark {
