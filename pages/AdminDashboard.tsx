@@ -14,6 +14,7 @@ const AdminDashboard: React.FC = () => {
   const [admissions, setAdmissions] = useState<AdmissionSubmission[]>(() => JSON.parse(localStorage.getItem('sia_admissions') || '[]'));
   const [courses, setCourses] = useState<Course[]>(() => JSON.parse(localStorage.getItem('sia_courses') || '[]'));
   const [gallery, setGallery] = useState<GalleryImage[]>(() => JSON.parse(localStorage.getItem('sia_gallery') || '[]'));
+  const [quizzes, setQuizzes] = useState<any[]>(() => JSON.parse(localStorage.getItem('sia_quizzes') || '[]'));
   const [settings, setSettings] = useState<SiteSettings>(() => {
     const saved = localStorage.getItem('sia_site_settings');
     return saved ? JSON.parse(saved) : {
@@ -47,12 +48,13 @@ const AdminDashboard: React.FC = () => {
     localStorage.setItem('sia_admissions', JSON.stringify(admissions));
     localStorage.setItem('sia_courses', JSON.stringify(courses));
     localStorage.setItem('sia_gallery', JSON.stringify(gallery));
+    localStorage.setItem('sia_quizzes', JSON.stringify(quizzes));
     localStorage.setItem('sia_site_settings', JSON.stringify(settings));
-  }, [students, staff, notices, admissions, courses, gallery, settings]);
+  }, [students, staff, notices, admissions, courses, gallery, quizzes, settings]);
 
   const saveToCloud = async () => {
     setIsSyncing(true);
-    const db = { students, notices, staff, gallery, courses, settings, admissions };
+    const db = { students, notices, staff, gallery, courses, settings, admissions, quizzes };
     try {
       const response = await fetch('api.php', {
         method: 'POST',
@@ -90,10 +92,9 @@ const AdminDashboard: React.FC = () => {
     const data = Object.fromEntries(fd.entries());
     const id = editMode === 'EDIT' ? editingItem.id : (activeTab === 'students' ? data.id : Date.now().toString());
 
-    // File processing for Admission if files are uploaded manually in modal
     let updatedItem = { ...editingItem, ...data, id };
     
-    // Process files if it's an admission form in the modal
+    // Admission files processing
     if (activeTab === 'admissions') {
       const fileInputs = (e.currentTarget as HTMLFormElement).querySelectorAll('input[type="file"]');
       for (const input of Array.from(fileInputs) as HTMLInputElement[]) {
@@ -104,6 +105,11 @@ const AdminDashboard: React.FC = () => {
       }
     }
 
+    // Quiz processing logic (if using simplified JSON or specific fields)
+    if (activeTab === 'quizzes' && !editingItem?.questions) {
+      updatedItem.questions = editingItem?.questions || [];
+    }
+
     switch(activeTab) {
       case 'admissions': setAdmissions(editMode === 'EDIT' ? admissions.map(a => a.id === id ? updatedItem as any : a) : [updatedItem as any, ...admissions]); break;
       case 'students': setStudents(editMode === 'EDIT' ? students.map(s => s.id === id ? updatedItem as any : s) : [...students, updatedItem as any]); break;
@@ -111,6 +117,7 @@ const AdminDashboard: React.FC = () => {
       case 'notices': setNotices(editMode === 'EDIT' ? notices.map(n => n.id === id ? updatedItem as any : n) : [updatedItem as any, ...notices]); break;
       case 'courses': setCourses(editMode === 'EDIT' ? courses.map(c => c.id === id ? updatedItem as any : c) : [...courses, updatedItem as any]); break;
       case 'gallery': setGallery(editMode === 'EDIT' ? gallery.map(g => g.id === id ? updatedItem as any : g) : [...gallery, updatedItem as any]); break;
+      case 'quizzes': setQuizzes(editMode === 'EDIT' ? quizzes.map(q => q.id === id ? updatedItem as any : q) : [...quizzes, updatedItem as any]); break;
     }
     setIsFormOpen(false);
   };
@@ -126,6 +133,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'home_content', label: 'হোমপেজ কন্ট্রোল', icon: '🏠' },
     { id: 'admissions', label: 'ভর্তি আবেদন', icon: '📩' },
     { id: 'results_manager', label: 'ফলাফল এন্ট্রি', icon: '📝' },
+    { id: 'quizzes', label: 'অনলাইন কুইজ', icon: '🧠' },
     { id: 'students', label: 'শিক্ষার্থী তালিকা', icon: '🎓' },
     { id: 'staff', label: 'শিক্ষক ও কর্মী', icon: '🏫' },
     { id: 'notices', label: 'নোটিশ বোর্ড', icon: '📢' },
@@ -152,8 +160,7 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="lg:col-span-3 space-y-6">
-          {/* Dashboard Header Actions */}
-          {['admissions', 'students', 'staff', 'notices', 'courses', 'gallery'].includes(activeTab) && (
+          {['admissions', 'students', 'staff', 'notices', 'courses', 'gallery', 'quizzes'].includes(activeTab) && (
             <div className="bg-white p-6 rounded-[32px] shadow-sm flex justify-between items-center border border-emerald-50 mb-6">
                <h2 className="text-xl font-black text-gray-800 flex items-center gap-3">
                  {menuItems.find(m => m.id === activeTab)?.icon} {menuItems.find(m => m.id === activeTab)?.label}
@@ -162,7 +169,59 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Tab Contents */}
+          {activeTab === 'overview' && (
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
+               <div className="bg-white p-10 rounded-[40px] shadow-sm border-b-8 border-emerald-500 text-center">
+                 <p className="text-[10px] font-black text-gray-400 uppercase mb-2">মোট শিক্ষার্থী</p>
+                 <h4 className="text-5xl font-black text-gray-800">{students.length}</h4>
+               </div>
+               <div className="bg-white p-10 rounded-[40px] shadow-sm border-b-8 border-blue-500 text-center">
+                 <p className="text-[10px] font-black text-gray-400 uppercase mb-2">নতুন আবেদন</p>
+                 <h4 className="text-5xl font-black text-blue-600">{admissions.length}</h4>
+               </div>
+               <div className="bg-white p-10 rounded-[40px] shadow-sm border-b-8 border-amber-500 text-center">
+                 <p className="text-[10px] font-black text-gray-400 uppercase mb-2">কুইজ সংখ্যা</p>
+                 <h4 className="text-5xl font-black text-amber-600">{quizzes.length}</h4>
+               </div>
+             </div>
+          )}
+
+          {['admissions', 'students', 'staff', 'notices', 'courses', 'gallery', 'quizzes'].includes(activeTab) && (
+             <div className="space-y-3 animate-fade-in">
+                {(activeTab === 'admissions' ? admissions :
+                  activeTab === 'students' ? students :
+                  activeTab === 'staff' ? staff :
+                  activeTab === 'notices' ? notices :
+                  activeTab === 'courses' ? courses :
+                  activeTab === 'gallery' ? gallery : quizzes).map((item: any) => (
+                    <div key={item.id} className="bg-white p-4 rounded-[32px] shadow-sm border border-gray-50 flex justify-between items-center group">
+                      <div className="flex items-center gap-4">
+                         <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center font-black text-emerald-600 overflow-hidden">
+                           {(item.studentPhoto || item.photo || item.url) ? 
+                             <img src={item.studentPhoto || item.photo || item.url} className="w-full h-full object-cover" /> : 
+                             <i className={`fas ${activeTab === 'quizzes' ? 'fa-brain' : 'fa-file-alt'}`}></i>}
+                         </div>
+                         <div>
+                           <h4 className="font-black text-gray-800 text-sm">{item.name || item.title}</h4>
+                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                             {activeTab === 'admissions' ? `শ্রেণি: ${item.targetClass} | তারিখ: ${item.appliedDate}` : 
+                              activeTab === 'quizzes' ? `শ্রেণি: ${item.class} | বিষয়: ${item.subject}` :
+                              activeTab === 'students' ? `আইডি: ${item.id}` : item.designation || 'আইটেম'}
+                           </p>
+                         </div>
+                      </div>
+                      <div className="flex gap-2">
+                         <button onClick={() => openForm('EDIT', item)} className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs transition hover:bg-blue-600 hover:text-white"><i className="fas fa-edit"></i></button>
+                         <button onClick={() => deleteItem(item.id, (activeTab === 'quizzes' ? quizzes : activeTab === 'admissions' ? admissions : students), (activeTab === 'quizzes' ? setQuizzes : activeTab === 'admissions' ? setAdmissions : setStudents))} className="w-9 h-9 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xs transition hover:bg-red-500 hover:text-white"><i className="fas fa-trash"></i></button>
+                      </div>
+                    </div>
+                ))}
+                {(activeTab === 'quizzes' ? quizzes : []).length === 0 && activeTab === 'quizzes' && (
+                  <div className="text-center py-10 bg-white rounded-[32px] border-2 border-dashed text-gray-300 italic">কোনো কুইজ যোগ করা হয়নি।</div>
+                )}
+             </div>
+          )}
+
           {activeTab === 'home_content' && (
             <div className="space-y-8 animate-fade-in">
               {/* Slider Controller */}
@@ -214,54 +273,6 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'overview' && (
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
-               <div className="bg-white p-10 rounded-[40px] shadow-sm border-b-8 border-emerald-500 text-center">
-                 <p className="text-[10px] font-black text-gray-400 uppercase mb-2">মোট শিক্ষার্থী</p>
-                 <h4 className="text-5xl font-black text-gray-800">{students.length}</h4>
-               </div>
-               <div className="bg-white p-10 rounded-[40px] shadow-sm border-b-8 border-blue-500 text-center">
-                 <p className="text-[10px] font-black text-gray-400 uppercase mb-2">নতুন আবেদন</p>
-                 <h4 className="text-5xl font-black text-blue-600">{admissions.length}</h4>
-               </div>
-               <div className="bg-white p-10 rounded-[40px] shadow-sm border-b-8 border-amber-500 text-center">
-                 <p className="text-[10px] font-black text-gray-400 uppercase mb-2">স্টাফ</p>
-                 <h4 className="text-5xl font-black text-amber-600">{staff.length}</h4>
-               </div>
-             </div>
-          )}
-
-          {['admissions', 'students', 'staff', 'notices', 'courses', 'gallery'].includes(activeTab) && (
-             <div className="space-y-3 animate-fade-in">
-                {(activeTab === 'admissions' ? admissions :
-                  activeTab === 'students' ? students :
-                  activeTab === 'staff' ? staff :
-                  activeTab === 'notices' ? notices :
-                  activeTab === 'courses' ? courses : gallery).map((item: any) => (
-                    <div key={item.id} className="bg-white p-4 rounded-[32px] shadow-sm border border-gray-50 flex justify-between items-center group">
-                      <div className="flex items-center gap-4">
-                         <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center font-black text-emerald-600 overflow-hidden">
-                           {(item.studentPhoto || item.photo || item.url) ? 
-                             <img src={item.studentPhoto || item.photo || item.url} className="w-full h-full object-cover" /> : 
-                             <i className="fas fa-file-alt"></i>}
-                         </div>
-                         <div>
-                           <h4 className="font-black text-gray-800 text-sm">{item.name || item.title}</h4>
-                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                             {activeTab === 'admissions' ? `শ্রেণি: ${item.targetClass} | তারিখ: ${item.appliedDate}` : 
-                              activeTab === 'students' ? `আইডি: ${item.id}` : item.designation || 'আইটেম'}
-                           </p>
-                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                         <button onClick={() => openForm('EDIT', item)} className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs"><i className="fas fa-edit"></i></button>
-                         <button onClick={() => deleteItem(item.id, (activeTab === 'admissions' ? admissions : students), (activeTab === 'admissions' ? setAdmissions : setStudents))} className="w-9 h-9 rounded-xl bg-red-50 text-red-500 flex items-center justify-center text-xs"><i className="fas fa-trash"></i></button>
-                      </div>
-                    </div>
-                ))}
-             </div>
-          )}
-
           {activeTab === 'database' && (
             <div className="bg-white p-12 rounded-[48px] shadow-sm text-center border border-emerald-50">
               <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-[32px] flex items-center justify-center mx-auto mb-6 text-3xl"><i className="fas fa-cloud-upload-alt"></i></div>
@@ -283,7 +294,33 @@ const AdminDashboard: React.FC = () => {
               <h3 className="text-xl font-black text-emerald-900 uppercase">{editMode === 'EDIT' ? 'সংশোধন' : 'নতুন সংযোজন'}</h3>
               <button onClick={() => setIsFormOpen(false)} className="text-gray-400 hover:text-red-500 text-2xl">✕</button>
             </div>
-            <form onSubmit={handleFormSubmit} className="p-10 space-y-6 max-h-[75vh] overflow-y-auto">
+            <form onSubmit={handleFormSubmit} className="p-10 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
+              
+              {activeTab === 'quizzes' && (
+                <div className="space-y-6">
+                  <input name="title" defaultValue={editingItem?.title} placeholder="কুইজের শিরোনাম (উদা: বার্ষিক সাধারণ জ্ঞান)" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
+                  <div className="grid grid-cols-2 gap-4">
+                    <input name="subject" defaultValue={editingItem?.subject} placeholder="বিষয়" className="p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
+                    <input name="class" defaultValue={editingItem?.class} placeholder="শ্রেণি" className="p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
+                  </div>
+                  <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100">
+                    <p className="text-[10px] font-black text-emerald-600 uppercase mb-4 tracking-widest">প্রশ্নমালা (JSON Format)</p>
+                    <textarea 
+                      name="questionsJson" 
+                      defaultValue={editingItem?.questions ? JSON.stringify(editingItem.questions, null, 2) : '[\n  {\n    "question": "বাংলাদেশের রাজধানী কি?",\n    "options": ["ঢাকা", "খুলনা", "রাজশাহী", "সিলেট"],\n    "correctIndex": 0\n  }\n]'} 
+                      className="w-full h-48 p-4 rounded-xl bg-white border font-mono text-xs outline-none"
+                      onChange={(e) => {
+                        try {
+                          const parsed = JSON.parse(e.target.value);
+                          setEditingItem({...editingItem, questions: parsed});
+                        } catch(err) {}
+                      }}
+                    />
+                    <p className="mt-2 text-[10px] text-emerald-400 italic">* সঠিক ফরম্যাটে প্রশ্নগুলো লিখুন।</p>
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'admissions' && (
                 <div className="space-y-6">
                    <input name="name" defaultValue={editingItem?.name} placeholder="নাম" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
@@ -300,20 +337,13 @@ const AdminDashboard: React.FC = () => {
                         <label className="text-[10px] font-black text-gray-400 uppercase ml-2">জন্ম সনদ</label>
                         <input type="file" name="birthCertificate" accept="image/*" className="w-full text-xs" />
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-gray-400 uppercase ml-2">পিতার ছবি</label>
-                        <input type="file" name="fatherPhoto" accept="image/*" className="w-full text-xs" />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-gray-400 uppercase ml-2">মাতার ছবি</label>
-                        <input type="file" name="motherPhoto" accept="image/*" className="w-full text-xs" />
-                      </div>
                    </div>
                 </div>
               )}
+
               {activeTab === 'students' && (
                 <>
-                  <input name="id" defaultValue={editingItem?.id} placeholder="আইডি" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
+                  <input name="id" defaultValue={editingItem?.id} placeholder="আইডি" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required disabled={editMode === 'EDIT'} />
                   <input name="name" defaultValue={editingItem?.name} placeholder="পূর্ণ নাম" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
                   <div className="grid grid-cols-2 gap-4">
                     <input name="class" defaultValue={editingItem?.class} placeholder="শ্রেণি" className="p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
@@ -321,19 +351,26 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </>
               )}
-              {/* Other simple forms (notices, gallery etc) */}
-              {['notices', 'gallery', 'staff'].includes(activeTab) && (
+
+              {['notices', 'gallery', 'staff', 'courses'].includes(activeTab) && (
                 <div className="space-y-4">
                   <input name="title" defaultValue={editingItem?.title || editingItem?.name} placeholder="টাইটেল / নাম" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />
                   {activeTab === 'gallery' && <input name="url" defaultValue={editingItem?.url} placeholder="ইমেজ URL" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />}
                   {activeTab === 'staff' && <input name="designation" defaultValue={editingItem?.designation} placeholder="পদবী" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none font-bold" required />}
+                  {activeTab === 'courses' && <textarea name="description" defaultValue={editingItem?.description} placeholder="বর্ণনা" className="w-full p-4 rounded-2xl bg-gray-50 border outline-none h-24 font-bold" />}
                 </div>
               )}
-              <button type="submit" className="w-full bg-emerald-600 text-white p-5 rounded-3xl font-black shadow-xl mt-6">সংরক্ষণ করুন</button>
+              
+              <button type="submit" className="w-full bg-emerald-600 text-white p-5 rounded-3xl font-black shadow-xl mt-6 transform transition active:scale-95">সংরক্ষণ করুন</button>
             </form>
           </div>
         </div>
       )}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+      `}</style>
     </div>
   );
 };
