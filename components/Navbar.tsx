@@ -1,7 +1,7 @@
-
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserRole } from '../types';
+import { useSchoolSettings } from '../src/lib/storage';
 
 interface NavbarProps {
   role: UserRole;
@@ -11,21 +11,9 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ role, setRole, currentUser }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem('sia_site_settings');
-    return saved ? JSON.parse(saved) : { schoolName: 'শিবগঞ্জ ইসলামী একাডেমী', tagline: 'সততা, নৈতিকতা ও শিক্ষার সমন্বয়' };
-  });
-
+  const [settings] = useSchoolSettings();
+  const location = useLocation();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const saved = localStorage.getItem('sia_site_settings');
-      if (saved) setSettings(JSON.parse(saved));
-    };
-    const interval = setInterval(handleStorageChange, 2000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleLogout = () => {
     setRole(UserRole.GUEST);
@@ -34,86 +22,226 @@ const Navbar: React.FC<NavbarProps> = ({ role, setRole, currentUser }) => {
     navigate('/');
   };
 
-  const links = [
+  const navLinks = [
     { name: 'হোম', path: '/' },
-    { name: 'আমাদের সম্পর্কে', path: '/about' },
-    { name: 'কোর্সসমূহ', path: '/courses' },
+    { name: 'পরিচিতি', path: '/about' },
+    { name: 'শাখা ও কোর্স', path: '/courses' },
+    { name: 'ভর্তি তথ্য', path: '/admission' },
     { name: 'ফলাফল', path: '/results' },
+    { name: 'নোটিশ বোর্ড', path: '/notices' },
+    { name: 'গ্যালারি', path: '/gallery' },
     { name: 'পরীক্ষা ও কুইজ', path: '/exams' },
-    { name: 'নোটিশ', path: '/notices' },
     { name: 'যোগাযোগ', path: '/contact' },
   ];
 
+  const isActive = (path: string) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
+
   return (
-    <nav className="bg-emerald-800 text-white shadow-lg sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20">
-          <div className="flex items-center">
-            <Link to="/" className="flex flex-col">
-              <span className="text-xl md:text-2xl font-black tracking-tight leading-none mb-1">{settings.schoolName}</span>
-              <span className="text-[10px] md:text-xs text-emerald-200 opacity-80 font-medium tracking-wide">{settings.tagline}</span>
-            </Link>
-          </div>
-          
-          <div className="hidden xl:flex items-center space-x-6">
-            {links.map((link) => (
-              <Link key={link.path} to={link.path} className="hover:text-emerald-300 transition-colors text-sm font-medium">
-                {link.name}
-              </Link>
-            ))}
-            
-            {role === UserRole.GUEST ? (
-              <Link to="/login" className="bg-emerald-600 hover:bg-emerald-700 px-6 py-2 rounded-xl font-bold transition text-sm shadow-md">
-                লগইন
-              </Link>
-            ) : (
-              <div className="flex items-center space-x-3">
-                {role === UserRole.ADMIN ? (
-                  <Link to="/admin" className="bg-white text-emerald-800 px-5 py-2 rounded-full font-black hover:bg-emerald-100 transition text-xs shadow-lg">
-                    ড্যাশবোর্ড
-                  </Link>
-                ) : (
-                  <Link to="/student-profile" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition">
-                    <i className="fas fa-user-circle"></i>
-                    <span className="text-xs font-bold">{currentUser?.name?.split(' ')[0]}</span>
-                  </Link>
-                )}
-                <button onClick={handleLogout} className="text-red-300 hover:text-red-400 text-xs font-bold">লগআউট</button>
-              </div>
-            )}
+    <header className="sticky top-0 z-50 shadow-md">
+      {/* Top Notification & Contact Bar */}
+      <div className="bg-emerald-950 text-emerald-200 text-xs py-1.5 border-b border-emerald-900/60 hidden md:block">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <span className="flex items-center gap-1.5">
+              <i className="fas fa-university text-emerald-400"></i>
+              <span>EIIN: <strong>{settings.eiin || '১২৪৬১১'}</strong></span>
+              <span className="text-emerald-700">|</span>
+              <span>স্থাপিত: {settings.estYear || '১৯৯৮'}</span>
+            </span>
+            <span className="flex items-center gap-1.5 hover:text-white transition">
+              <i className="fas fa-phone-alt text-emerald-400"></i>
+              <span>{settings.phone1}</span>
+            </span>
+            <span className="flex items-center gap-1.5 hover:text-white transition hidden lg:inline-flex">
+              <i className="fas fa-envelope text-emerald-400"></i>
+              <span>{settings.email}</span>
+            </span>
           </div>
 
-          <div className="xl:hidden flex items-center">
-            <button onClick={() => setIsOpen(!isOpen)} className="text-white hover:text-emerald-300 focus:outline-none">
-              <i className={`fas ${isOpen ? 'fa-times' : 'fa-bars'} text-2xl`}></i>
-            </button>
+          <div className="flex items-center gap-4">
+            {settings.admissionOpen && (
+              <Link
+                to="/admission"
+                className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded text-[11px] font-bold hover:bg-amber-500 hover:text-white transition"
+              >
+                ভর্তি চলছে ({settings.currentSession || '২০২৪-২০২৫'})
+              </Link>
+            )}
+            <div className="flex items-center gap-3">
+              {settings.facebookUrl && (
+                <a href={settings.facebookUrl} target="_blank" rel="noreferrer" className="hover:text-emerald-400 transition" title="Facebook">
+                  <i className="fab fa-facebook-f"></i>
+                </a>
+              )}
+              {settings.youtubeUrl && (
+                <a href={settings.youtubeUrl} target="_blank" rel="noreferrer" className="hover:text-red-400 transition" title="YouTube">
+                  <i className="fab fa-youtube"></i>
+                </a>
+              )}
+              {settings.whatsapp && (
+                <a href={`https://wa.me/${settings.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" className="hover:text-green-400 transition" title="WhatsApp">
+                  <i className="fab fa-whatsapp"></i>
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="xl:hidden bg-emerald-900 px-6 py-6 space-y-3 border-t border-emerald-700 animate-fade-in">
-          {links.map((link) => (
-            <Link key={link.path} to={link.path} className="block hover:bg-emerald-800 p-3 rounded-xl font-medium transition" onClick={() => setIsOpen(false)}>
-              {link.name}
+      {/* Main Navbar */}
+      <nav className="bg-emerald-900 text-white border-b border-emerald-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            {/* School Brand & Logo */}
+            <Link to="/" className="flex items-center gap-3.5 group">
+              {settings.logo ? (
+                <img
+                  src={settings.logo}
+                  alt={settings.schoolName}
+                  className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-emerald-400/80 shadow-md group-hover:scale-105 transition"
+                />
+              ) : (
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-emerald-800 border-2 border-emerald-400/80 flex items-center justify-center text-emerald-300 text-2xl shadow-md group-hover:scale-105 transition">
+                  <i className="fas fa-graduation-cap"></i>
+                </div>
+              )}
+              <div className="flex flex-col">
+                <span className="text-xl md:text-2xl font-black tracking-tight leading-tight group-hover:text-emerald-200 transition">
+                  {settings.schoolName}
+                </span>
+                <span className="text-[11px] md:text-xs text-emerald-200/90 font-medium line-clamp-1">
+                  {settings.tagline}
+                </span>
+              </div>
             </Link>
-          ))}
-          {role === UserRole.GUEST ? (
-            <Link to="/login" className="block bg-emerald-600 p-4 rounded-2xl font-bold text-center shadow-lg" onClick={() => setIsOpen(false)}>
-              লগইন
-            </Link>
-          ) : (
-            <div className="space-y-3">
-               <Link to={role === UserRole.ADMIN ? "/admin" : "/student-profile"} className="block bg-white text-emerald-800 p-4 rounded-2xl font-black text-center shadow-lg" onClick={() => setIsOpen(false)}>
-                  {role === UserRole.ADMIN ? "ড্যাশবোর্ড" : "আমার প্রোফাইল"}
-               </Link>
-               <button onClick={handleLogout} className="w-full text-red-300 font-bold p-2">লগআউট</button>
+
+            {/* Desktop Navigation Links */}
+            <div className="hidden xl:flex items-center space-x-1 lg:space-x-2">
+              {navLinks.map((link) => {
+                const active = isActive(link.path);
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                      active
+                        ? 'bg-emerald-800/90 text-white border-b-2 border-amber-400'
+                        : 'text-emerald-100/90 hover:text-white hover:bg-emerald-800/50'
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
+
+              <div className="pl-3 ml-2 border-l border-emerald-800/80 flex items-center gap-2.5">
+                {role === UserRole.GUEST ? (
+                  <Link
+                    to="/login"
+                    className="bg-amber-500 hover:bg-amber-600 text-emerald-950 font-black px-4 py-2 rounded-xl text-xs transition shadow hover:shadow-lg flex items-center gap-1.5"
+                  >
+                    <i className="fas fa-lock text-[10px]"></i>
+                    <span>লগইন</span>
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {role === UserRole.ADMIN ? (
+                      <Link
+                        to="/admin"
+                        className="bg-white text-emerald-900 px-4 py-2 rounded-xl font-black text-xs hover:bg-emerald-100 transition shadow flex items-center gap-1.5"
+                      >
+                        <i className="fas fa-sliders-h text-emerald-700"></i>
+                        <span>এডমিন প্যানেল</span>
+                      </Link>
+                    ) : (
+                      <Link
+                        to="/student-profile"
+                        className="bg-emerald-800 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2"
+                      >
+                        <i className="fas fa-user-graduate text-emerald-300"></i>
+                        <span>{currentUser?.name ? currentUser.name.split(' ')[0] : 'প্রোফাইল'}</span>
+                      </Link>
+                    )}
+                    <button
+                      onClick={handleLogout}
+                      className="text-red-300 hover:text-white hover:bg-red-900/40 p-2 rounded-lg text-xs transition"
+                      title="লগআউট"
+                    >
+                      <i className="fas fa-sign-out-alt"></i>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+
+            {/* Mobile Hamburger Button */}
+            <div className="xl:hidden flex items-center gap-2">
+              {role === UserRole.GUEST ? (
+                <Link
+                  to="/login"
+                  className="bg-amber-500 text-emerald-950 font-bold px-3 py-1.5 rounded-lg text-xs"
+                >
+                  লগইন
+                </Link>
+              ) : (
+                <Link
+                  to={role === UserRole.ADMIN ? "/admin" : "/student-profile"}
+                  className="bg-white text-emerald-900 font-bold px-3 py-1.5 rounded-lg text-xs"
+                >
+                  {role === UserRole.ADMIN ? "প্যানেল" : "প্রোফাইল"}
+                </Link>
+              )}
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2 rounded-lg text-emerald-200 hover:text-white hover:bg-emerald-800/80 focus:outline-none"
+                aria-label="Toggle Menu"
+              >
+                <i className={`fas ${isOpen ? 'fa-times' : 'fa-bars'} text-xl`}></i>
+              </button>
+            </div>
+          </div>
         </div>
-      )}
-    </nav>
+
+        {/* Mobile Dropdown Menu */}
+        {isOpen && (
+          <div className="xl:hidden bg-emerald-950 px-4 pt-3 pb-6 border-t border-emerald-800 space-y-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => setIsOpen(false)}
+                className={`block px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
+                  isActive(link.path)
+                    ? 'bg-emerald-800 text-white font-bold'
+                    : 'text-emerald-100 hover:bg-emerald-900'
+                }`}
+              >
+                {link.name}
+              </Link>
+            ))}
+
+            <div className="pt-4 border-t border-emerald-900 mt-3 space-y-2">
+              <div className="text-xs text-emerald-400 px-3">
+                <p><i className="fas fa-phone mr-1.5"></i> {settings.phone1}</p>
+                <p className="mt-1"><i className="fas fa-envelope mr-1.5"></i> {settings.email}</p>
+              </div>
+              {role !== UserRole.GUEST && (
+                <button
+                  onClick={() => { setIsOpen(false); handleLogout(); }}
+                  className="w-full text-left text-red-400 px-3 py-2 text-sm font-bold hover:bg-red-950/40 rounded-lg"
+                >
+                  <i className="fas fa-sign-out-alt mr-2"></i> লগআউট
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </nav>
+    </header>
   );
 };
 

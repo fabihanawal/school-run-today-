@@ -1,83 +1,182 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { useSchoolSettings } from '../src/lib/storage';
 
 const Footer: React.FC = () => {
-  const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem('sia_site_settings');
-    return saved ? JSON.parse(saved) : { 
-      schoolName: 'শিবগঞ্জ ইসলামী একাডেমী', 
-      phone1: '০১৭১৬১৩৭৭০৮', 
-      email: 's124611@gmail.com', 
-      address: 'শিবগঞ্জ, চাঁপাইনবাবগঞ্জ',
-      principalName: 'মোহা: ইব্রাহিম খলিল',
-      principalMsg: 'আদর্শ মানুষ গড়াই আমাদের লক্ষ্য।'
-    };
-  });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const saved = localStorage.getItem('sia_site_settings');
-      if (saved) setSettings(JSON.parse(saved));
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
+  const [settings] = useSchoolSettings();
 
   return (
-    <footer className="bg-gray-900 text-gray-300 pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
-        <div>
-          <h3 className="text-white text-2xl font-black mb-6">{settings.schoolName}</h3>
-          <p className="text-sm leading-relaxed opacity-70">
-            একটি ঐতিহ্যবাহী শিক্ষা প্রতিষ্ঠান যেখানে আধুনিক শিক্ষার সাথে ইসলামী মূল্যবোধের অনন্য সমন্বয় ঘটে। আমরা বিশ্বাস করি নৈতিকতা সম্পন্ন মেধা সমাজ পরিবর্তনের মূল হাতিয়ার।
-          </p>
-          <div className="mt-8 flex space-x-5">
-            <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all"><i className="fab fa-facebook-f"></i></a>
-            <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 hover:text-white transition-all"><i className="fab fa-youtube"></i></a>
+    <footer className="bg-slate-950 text-slate-300 pt-16 pb-8 border-t-4 border-emerald-700">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8 pb-12 border-b border-slate-800">
+          {/* Column 1: School Identity */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              {settings.logo ? (
+                <img src={settings.logo} alt={settings.schoolName} className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500" />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-emerald-900 border-2 border-emerald-500 flex items-center justify-center text-emerald-300 text-xl">
+                  <i className="fas fa-graduation-cap"></i>
+                </div>
+              )}
+              <div>
+                <h3 className="text-white text-lg font-black leading-tight">{settings.schoolName}</h3>
+                <p className="text-[11px] text-emerald-400 font-medium">EIIN: {settings.eiin || '১২৪৬১১'} · স্থাপিত: {settings.estYear || '১৯৯৮'}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-400 leading-relaxed">
+              {settings.tagline}। একটি ঐতিহ্যবাহী দ্বীনি ও আধুনিক শিক্ষাপ্রতিষ্ঠান যা আদর্শ ও নৈতিকতাসম্পন্ন সুনাগরিক গড়ে তোলায় নিবেদিত।
+            </p>
+
+            <div className="pt-2 flex items-center gap-3">
+              {settings.facebookUrl && (
+                <a
+                  href={settings.facebookUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition"
+                  title="Facebook"
+                >
+                  <i className="fab fa-facebook-f text-sm"></i>
+                </a>
+              )}
+              {settings.youtubeUrl && (
+                <a
+                  href={settings.youtubeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center hover:bg-red-600 hover:text-white transition"
+                  title="YouTube"
+                >
+                  <i className="fab fa-youtube text-sm"></i>
+                </a>
+              )}
+              {settings.whatsapp && (
+                <a
+                  href={`https://wa.me/${settings.whatsapp.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition"
+                  title="WhatsApp"
+                >
+                  <i className="fab fa-whatsapp text-sm"></i>
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Column 2: Quick Links */}
+          <div>
+            <h4 className="text-white font-bold text-sm tracking-wide uppercase mb-4 text-emerald-400">
+              গুরুত্বপূর্ণ লিঙ্কসমূহ
+            </h4>
+            <ul className="space-y-2.5 text-xs text-slate-400">
+              <li>
+                <Link to="/about" className="hover:text-emerald-400 transition flex items-center gap-2">
+                  <i className="fas fa-chevron-right text-[9px] text-emerald-500"></i>
+                  <span>আমাদের পরিচিতি ও শিক্ষক পরিষদ</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/courses" className="hover:text-emerald-400 transition flex items-center gap-2">
+                  <i className="fas fa-chevron-right text-[9px] text-emerald-500"></i>
+                  <span>শিক্ষা কার্যক্রম ও কারিকুলাম</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/admission" className="hover:text-emerald-400 transition flex items-center gap-2">
+                  <i className="fas fa-chevron-right text-[9px] text-emerald-500"></i>
+                  <span>অনলাইন ভর্তি আবেদন ফরম</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/results" className="hover:text-emerald-400 transition flex items-center gap-2">
+                  <i className="fas fa-chevron-right text-[9px] text-emerald-500"></i>
+                  <span>অনলাইন ফলাফল অনুসন্ধান</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/notices" className="hover:text-emerald-400 transition flex items-center gap-2">
+                  <i className="fas fa-chevron-right text-[9px] text-emerald-500"></i>
+                  <span>অফিসিয়াল নোটিশ বোর্ড</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/exams" className="hover:text-emerald-400 transition flex items-center gap-2">
+                  <i className="fas fa-chevron-right text-[9px] text-emerald-500"></i>
+                  <span>অনলাইন কুইজ ও পরীক্ষা পোর্টাল</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/gallery" className="hover:text-emerald-400 transition flex items-center gap-2">
+                  <i className="fas fa-chevron-right text-[9px] text-emerald-500"></i>
+                  <span>ক্যাম্পাস ফটো গ্যালারি</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 3: Contact & Office Hours */}
+          <div>
+            <h4 className="text-white font-bold text-sm tracking-wide uppercase mb-4 text-emerald-400">
+              যোগাযোগ ও অফিস সময়
+            </h4>
+            <ul className="space-y-3 text-xs text-slate-400">
+              <li className="flex items-start gap-2.5">
+                <i className="fas fa-map-marker-alt text-emerald-400 mt-0.5"></i>
+                <span className="leading-relaxed">{settings.address}</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <i className="fas fa-phone-alt text-emerald-400"></i>
+                <span>{settings.phone1} {settings.phone2 ? `· ${settings.phone2}` : ''}</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <i className="fas fa-envelope text-emerald-400"></i>
+                <span>{settings.email}</span>
+              </li>
+              <li className="flex items-start gap-2.5 pt-1 border-t border-slate-900">
+                <i className="fas fa-clock text-amber-400 mt-0.5"></i>
+                <span className="text-slate-300">{settings.officeHours || 'শনি - বৃহস্পতি: সকাল ৮:০০ - বিকাল ৪:০০'}</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 4: Message from Principal */}
+          <div>
+            <h4 className="text-white font-bold text-sm tracking-wide uppercase mb-4 text-emerald-400">
+              প্রধান শিক্ষকের বাণী
+            </h4>
+            <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+              <p className="text-xs text-slate-300 italic leading-relaxed line-clamp-4">
+                "{settings.principalMsg}"
+              </p>
+              <div className="flex items-center gap-2.5 pt-2 border-t border-slate-800">
+                {settings.principalPhoto && (
+                  <img src={settings.principalPhoto} alt={settings.principalName} className="w-8 h-8 rounded-full object-cover border border-emerald-500" />
+                )}
+                <div>
+                  <p className="text-xs font-bold text-white leading-none">{settings.principalName}</p>
+                  <p className="text-[10px] text-emerald-400 mt-0.5">{settings.principalDesignation || 'প্রধান শিক্ষক'}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div>
-          <h4 className="text-white font-bold mb-6 text-lg">গুরুত্বপূর্ণ লিঙ্ক</h4>
-          <ul className="space-y-3 text-sm">
-            <li><Link to="/admission" className="hover:text-emerald-500 transition-colors">অনলাইন ভর্তি ফরম</Link></li>
-            <li><Link to="/results" className="hover:text-emerald-500 transition-colors">পরীক্ষার ফলাফল</Link></li>
-            <li><Link to="/notices" className="hover:text-emerald-500 transition-colors">নোটিশ বোর্ড</Link></li>
-            <li><Link to="/gallery" className="hover:text-emerald-500 transition-colors">ফটো গ্যালারী</Link></li>
-            <li><Link to="/exams" className="hover:text-emerald-500 transition-colors">অনলাইন কুইজ পোর্টাল</Link></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="text-white font-bold mb-6 text-lg">যোগাযোগ</h4>
-          <ul className="space-y-4 text-sm opacity-80">
-            <li className="flex items-start gap-3">
-              <span className="text-emerald-500 mt-1"><i className="fas fa-map-marker-alt"></i></span>
-              <span>{settings.address}</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-emerald-500 mt-1"><i className="fas fa-phone"></i></span>
-              <span>{settings.phone1}</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-emerald-500 mt-1"><i className="fas fa-envelope"></i></span>
-              <span>{settings.email}</span>
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="text-white font-bold mb-6 text-lg">প্রধান বাণী</h4>
-          <p className="text-sm italic text-gray-400 leading-relaxed">
-            "{settings.principalMsg.substring(0, 100)}..."
+        {/* Bottom Bar */}
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+          <p>
+            &copy; {new Date().getFullYear()} {settings.schoolName}। সর্বস্বত্ব সংরক্ষিত।
           </p>
-          <p className="mt-4 text-xs font-black text-emerald-500 uppercase tracking-widest">— {settings.principalName}</p>
+          <div className="flex items-center gap-4 text-[11px]">
+            <span>EIIN: {settings.eiin}</span>
+            <span>·</span>
+            <span>সেশন: {settings.currentSession}</span>
+            <span>·</span>
+            <Link to="/login" className="text-slate-400 hover:text-emerald-400 transition">প্রশাসনিক লগইন</Link>
+          </div>
         </div>
-      </div>
-      
-      <div className="mt-16 border-t border-gray-800/50 pt-8 text-center text-xs">
-        <p className="opacity-40">&copy; {new Date().getFullYear()} {settings.schoolName}। সর্বস্বত্ব সংরক্ষিত।</p>
-        <p className="mt-2 text-emerald-600 font-bold opacity-60">SIA Digital Management System v2.0</p>
       </div>
     </footer>
   );

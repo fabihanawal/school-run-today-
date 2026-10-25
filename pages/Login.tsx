@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { UserRole } from '../types';
+import { useNavigate, Link } from 'react-router-dom';
+import { UserRole, Student } from '../types';
+import { useSchoolSettings, useCollection, KEYS } from '../src/lib/storage';
 
 interface LoginProps {
   setRole: (role: UserRole) => void;
@@ -9,6 +9,9 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ setRole, setCurrentUser }) => {
+  const [settings] = useSchoolSettings();
+  const [students] = useCollection<Student>(KEYS.STUDENTS, []);
+
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -17,124 +20,169 @@ const Login: React.FC<LoginProps> = ({ setRole, setCurrentUser }) => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); // Clear previous error
+    setError('');
 
-    // Safe input cleaning
     const cleanId = id.trim().toLowerCase();
     const cleanPassword = password.trim();
 
-    // Admin Login Logic
-    if (cleanId === 'admin' && cleanPassword === 'admin123') {
+    // 1. Admin Login
+    if (cleanId === 'admin' && (cleanPassword === 'admin123' || cleanPassword === 'admin')) {
       setRole(UserRole.ADMIN);
-      setCurrentUser({ name: 'System Admin', id: 'admin' });
-      // Saving to localStorage immediately to ensure route protection picks it up
+      const adminUser = { name: 'System Admin', id: 'admin', role: UserRole.ADMIN };
+      setCurrentUser(adminUser);
       localStorage.setItem('sia_user_role', UserRole.ADMIN);
-      localStorage.setItem('sia_current_user', JSON.stringify({ name: 'System Admin', id: 'admin' }));
+      localStorage.setItem('sia_current_user', JSON.stringify(adminUser));
       navigate('/admin');
       return;
     }
 
-    // Student Login Logic
-    const studentDb = JSON.parse(localStorage.getItem('sia_students_db') || '[]');
-    const student = studentDb.find((s: any) => s.id === cleanId);
-
+    // 2. Student Login
+    const student = students.find((s) => s.id.toLowerCase() === cleanId);
     if (student) {
       setRole(UserRole.STUDENT);
       setCurrentUser(student);
       localStorage.setItem('sia_user_role', UserRole.STUDENT);
       localStorage.setItem('sia_current_user', JSON.stringify(student));
       navigate('/student-profile');
-    } else if (cleanId === '124611') { // Demo Student
-      const demoStudent = {
-        id: '124611',
-        name: 'মোঃ হাসান আলি',
-        class: '১০ম',
-        roll: '১০১',
-        guardianPhone: '০১৭১xxxxxxx',
-        results: []
+      return;
+    }
+
+    // 3. Fallback demo
+    if (cleanId === '124611' || cleanId === '124612') {
+      const demoStudent: Student = {
+        id: cleanId,
+        name: cleanId === '124611' ? 'মোঃ হাসান আলি' : 'মোসাঃ ফাতেমা খাতুন',
+        class: cleanId === '124611' ? '১০ম' : '৯ম',
+        roll: cleanId === '124611' ? '১০১' : '১০২',
+        guardianPhone: '০১৭১xxxxxxx'
       };
       setRole(UserRole.STUDENT);
       setCurrentUser(demoStudent);
       localStorage.setItem('sia_user_role', UserRole.STUDENT);
       localStorage.setItem('sia_current_user', JSON.stringify(demoStudent));
       navigate('/student-profile');
-    } else {
-      setError('ভুল আইডি বা পাসওয়ার্ড। দয়া করে আবার চেষ্টা করুন।');
+      return;
     }
+
+    setError('ভুল ইউজার আইডি বা পাসওয়ার্ড। দয়া করে আবার চেষ্টা করুন।');
+  };
+
+  const handleQuickAdmin = () => {
+    setId('admin');
+    setPassword('admin123');
+    setError('');
+  };
+
+  const handleQuickStudent = () => {
+    setId('124611');
+    setPassword('123456');
+    setError('');
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white p-10 rounded-[40px] shadow-2xl border border-gray-100">
-        <div className="text-center mb-10">
-          <div className="bg-emerald-100 w-24 h-24 rounded-[32px] flex items-center justify-center mx-auto mb-6 transform -rotate-6 shadow-inner">
-            <i className="fas fa-user-shield text-4xl text-emerald-600"></i>
+    <div className="min-h-[85vh] flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6">
+      <div className="max-w-md w-full bg-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-200/80">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm">
+            <i className="fas fa-lock"></i>
           </div>
-          <h2 className="text-3xl font-black text-gray-800">লগইন পোর্টাল</h2>
-          <p className="text-gray-400 font-bold text-sm mt-2 uppercase tracking-widest">Student & Admin Access</p>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900">লগইন পোর্টাল</h2>
+          <p className="text-xs text-slate-500 mt-1">
+            {settings.schoolName} · শিক্ষার্থী ও এডমিন অ্যাক্সেস
+          </p>
         </div>
 
         {error && (
-          <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-xl animate-bounce">
-            <p className="text-red-600 text-sm font-bold flex items-center gap-2">
-              <i className="fas fa-exclamation-circle"></i> {error}
-            </p>
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs font-bold flex items-center gap-2">
+            <i className="fas fa-exclamation-circle text-base"></i>
+            <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-black text-gray-500 mb-2 uppercase ml-1">ইউজার আইডি</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              ইউজার আইডি / রোল নম্বর
+            </label>
             <div className="relative">
-              <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                 <i className="fas fa-user"></i>
               </span>
-              <input 
-                type="text" 
-                className="w-full pl-12 pr-5 py-5 rounded-3xl bg-gray-50 border border-gray-100 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all text-lg font-bold"
-                placeholder="যেমন: admin"
+              <input
+                type="text"
+                required
                 value={id}
                 onChange={(e) => setId(e.target.value)}
-                required
+                placeholder="যেমন: admin বা 124611"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-black text-gray-500 mb-2 uppercase ml-1">পাসওয়ার্ড</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              পাসওয়ার্ড
+            </label>
             <div className="relative">
-              <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300">
-                <i className="fas fa-lock"></i>
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                <i className="fas fa-key"></i>
               </span>
-              <input 
-                type={showPassword ? "text" : "password"} 
-                className="w-full pl-12 pr-12 py-5 rounded-3xl bg-gray-50 border border-gray-100 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all text-lg font-bold"
-                placeholder="••••••••"
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                placeholder="••••••••"
+                className="w-full pl-10 pr-11 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
               />
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
               </button>
             </div>
           </div>
 
-          <button type="submit" className="w-full bg-emerald-600 text-white font-black py-5 rounded-3xl hover:bg-emerald-700 transition shadow-xl transform active:scale-95 text-lg">
-            প্রবেশ করুন ➔
+          <button
+            type="submit"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 px-4 rounded-xl text-sm transition shadow-lg hover:shadow-emerald-600/30 flex items-center justify-center gap-2 mt-2"
+          >
+            <span>লগইন করুন</span>
+            <i className="fas fa-arrow-right text-xs"></i>
           </button>
         </form>
 
-        <div className="mt-10 text-center space-y-2">
-          <p className="text-xs text-gray-400 font-bold uppercase">টিপস</p>
-          <p className="text-[10px] text-gray-400 leading-relaxed italic">
-            অ্যাডমিন লগইনের জন্য সব ছোট হাতের অক্ষরে টাইপ করুন। <br/>
-            আইডি: <span className="text-emerald-600 font-black">admin</span> | পাসওয়ার্ড: <span className="text-emerald-600 font-black">admin123</span>
+        {/* Quick Testing Credentials helper */}
+        <div className="mt-8 pt-6 border-t border-slate-100 space-y-3">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">
+            দ্রুত পরীক্ষার জন্য ক্লিক করুন:
           </p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={handleQuickAdmin}
+              className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-left transition"
+            >
+              <span className="block text-xs font-bold text-slate-800">এডমিন লগইন</span>
+              <span className="block text-[10px] text-emerald-700 font-mono">admin / admin123</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleQuickStudent}
+              className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-left transition"
+            >
+              <span className="block text-xs font-bold text-slate-800">শিক্ষার্থী লগইন</span>
+              <span className="block text-[10px] text-blue-700 font-mono">আইডি: 124611</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center">
+          <Link to="/" className="text-xs text-slate-500 hover:text-emerald-700 font-semibold">
+            ← হোমপেজে ফিরে যান
+          </Link>
         </div>
       </div>
     </div>

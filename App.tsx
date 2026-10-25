@@ -16,6 +16,9 @@ import Exams from './pages/Exams';
 import AdminDashboard from './pages/AdminDashboard';
 import StudentProfilePage from './pages/StudentProfilePage';
 import { UserRole } from './types';
+import { initStorageIfEmpty, notifyDataUpdated } from './src/lib/storage';
+
+initStorageIfEmpty();
 
 const App: React.FC = () => {
   const [role, setRole] = useState<UserRole>(() => {
@@ -54,6 +57,7 @@ const App: React.FC = () => {
         Object.entries(syncMap).forEach(([key, val]) => {
           if (val) localStorage.setItem(key, JSON.stringify(val));
         });
+        notifyDataUpdated();
         console.log("☁️ All data synced.");
       } catch (err) {
         console.log("Local mode active.");

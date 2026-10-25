@@ -1,4 +1,3 @@
-
 export enum UserRole {
   ADMIN = 'ADMIN',
   TEACHER = 'TEACHER',
@@ -15,6 +14,8 @@ export interface Course {
   features: string[];
   colorClass: string;
   borderClass: string;
+  ageGroup?: string;
+  duration?: string;
 }
 
 export interface StaffProfile {
@@ -23,45 +24,103 @@ export interface StaffProfile {
   designation: string;
   subject?: string;
   mobile: string;
+  email?: string;
+  qualification?: string;
   type: 'TEACHER' | 'STAFF';
   photo?: string;
+  joinDate?: string;
 }
 
 export interface Notice {
   id: string;
   title: string;
   date: string;
-  type: string;
+  type: 'ACADEMIC' | 'EXAM' | 'HOLIDAY' | 'ADMISSION' | 'GENERAL';
   content?: string;
+  pinned?: boolean;
+  attachmentName?: string;
 }
 
 export interface GalleryImage {
   id: string;
   url: string;
   title: string;
+  category?: 'CAMPUS' | 'EVENTS' | 'SPORTS' | 'CLASSROOM';
+  date?: string;
 }
 
 export interface SliderImage {
   id: string;
   url: string;
   title: string;
+  subtitle?: string;
+  buttonText?: string;
+  buttonLink?: string;
+}
+
+export interface SchoolStat {
+  id: string;
+  label: string;
+  value: string;
+  icon: string;
+}
+
+export interface FeatureItem {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+}
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email?: string;
+  phone: string;
+  subject: string;
+  message: string;
+  date: string;
+  read?: boolean;
 }
 
 export interface SiteSettings {
   schoolName: string;
   tagline: string;
+  eiin: string;
+  estYear: string;
+  motto: string;
+  logo?: string;
   phone1: string;
+  phone2: string;
   email: string;
   address: string;
+  officeHours: string;
+  googleMapUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  whatsapp: string;
   principalName: string;
+  principalDesignation: string;
   principalMsg: string;
   principalPhoto: string;
   chairmanName: string;
+  chairmanDesignation: string;
   chairmanMsg: string;
   chairmanPhoto: string;
   bannerImage: string;
   scrollingHeadline: string;
   sliderImages: SliderImage[];
+  aboutTitle: string;
+  aboutHistory: string;
+  aboutMission: string;
+  aboutVision: string;
+  aboutImage: string;
+  stats: SchoolStat[];
+  features: FeatureItem[];
+  admissionOpen: boolean;
+  admissionDeadline: string;
+  currentSession: string;
   homeLayout: 'classic' | 'modern' | 'focus';
 }
 
@@ -84,6 +143,7 @@ export interface TermResult {
 
 export interface AdmissionSubmission {
   id: string;
+  trackingNo: string;
   name: string;
   fatherName: string;
   motherName: string;
@@ -94,11 +154,11 @@ export interface AdmissionSubmission {
   address: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   appliedDate: string;
-  // File fields (Base64 strings)
   studentPhoto?: string;
   birthCertificate?: string;
   fatherPhoto?: string;
   motherPhoto?: string;
+  remarks?: string;
 }
 
 export interface Student {
@@ -106,7 +166,25 @@ export interface Student {
   name: string;
   class: string;
   roll: string;
+  section?: string;
   guardianPhone: string;
+  bloodGroup?: string;
   studentPhoto?: string;
   academicResults?: TermResult[];
+}
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  subject: string;
+  targetClass: string;
+  durationMinutes: number;
+  questions: QuizQuestion[];
+  createdDate: string;
 }
