@@ -160,27 +160,33 @@ const Home: React.FC = () => {
 
       {/* 2. Urgent Scrolling Notice Ticker */}
       {settings.scrollingHeadline && (
-        <div className="bg-emerald-900 border-y border-emerald-800 shadow-md">
-          <div className="max-w-7xl mx-auto px-4 flex items-center py-2.5">
-            <div className="bg-amber-400 text-emerald-950 text-xs font-black px-3 py-1 rounded-md whitespace-nowrap z-10 shadow-sm mr-3 flex items-center gap-1.5">
-              <i className="fas fa-bell text-xs"></i>
+        <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-950 border-y border-emerald-800 shadow-md relative z-10">
+          <div className="max-w-7xl mx-auto px-4 flex items-center py-3">
+            <div className="bg-amber-400 text-emerald-950 text-xs font-black px-3.5 py-1.5 rounded-lg whitespace-nowrap z-20 shadow-md mr-3.5 flex items-center gap-1.5 flex-shrink-0">
+              <i className="fas fa-bullhorn text-xs animate-bounce"></i>
               <span>জরুরি নোটিশ:</span>
             </div>
-            <div className="flex-1 overflow-hidden relative h-6">
-              <div className="animate-notice whitespace-nowrap absolute top-0 text-emerald-100 font-semibold text-sm hover:[animation-play-state:paused] cursor-pointer">
-                <Link to="/notices">{settings.scrollingHeadline}</Link>
+            <div className="flex-1 overflow-hidden relative h-7 flex items-center">
+              <div className="animate-notice whitespace-nowrap absolute text-amber-200 hover:text-white font-medium text-sm md:text-base hover:[animation-play-state:paused] cursor-pointer transition">
+                <Link to="/notices" className="flex items-center gap-2">
+                  <span>{settings.scrollingHeadline}</span>
+                </Link>
               </div>
             </div>
-            <Link to="/notices" className="text-xs text-amber-300 font-bold hover:underline whitespace-nowrap ml-3 hidden sm:inline">
-              সকল নোটিশ ➔
+            <Link
+              to="/notices"
+              className="text-xs text-amber-300 hover:text-amber-200 font-bold hover:underline whitespace-nowrap ml-3.5 hidden sm:flex items-center gap-1 flex-shrink-0"
+            >
+              <span>সকল নোটিশ</span>
+              <i className="fas fa-arrow-right text-[10px]"></i>
             </Link>
           </div>
         </div>
       )}
 
       {/* 3. Quick Action Portals */}
-      <section className="max-w-7xl mx-auto px-4 -mt-8 relative z-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="max-w-7xl mx-auto px-4 pt-8 pb-4 relative z-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {quickPortals.map((portal, idx) => (
             <Link
               key={idx}

@@ -149,15 +149,7 @@ const Navbar: React.FC<NavbarProps> = ({ role, setRole, currentUser }) => {
                   </Link>
                 ) : (
                   <div className="flex items-center gap-2">
-                    {role === UserRole.ADMIN ? (
-                      <Link
-                        to="/admin"
-                        className="bg-white text-emerald-900 px-4 py-2 rounded-xl font-black text-xs hover:bg-emerald-100 transition shadow flex items-center gap-1.5"
-                      >
-                        <i className="fas fa-sliders-h text-emerald-700"></i>
-                        <span>এডমিন প্যানেল</span>
-                      </Link>
-                    ) : (
+                    {role === UserRole.STUDENT && (
                       <Link
                         to="/student-profile"
                         className="bg-emerald-800 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2"
@@ -168,10 +160,11 @@ const Navbar: React.FC<NavbarProps> = ({ role, setRole, currentUser }) => {
                     )}
                     <button
                       onClick={handleLogout}
-                      className="text-red-300 hover:text-white hover:bg-red-900/40 p-2 rounded-lg text-xs transition"
+                      className="text-red-300 hover:text-white hover:bg-red-900/40 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
                       title="লগআউট"
                     >
                       <i className="fas fa-sign-out-alt"></i>
+                      <span>লগআউট</span>
                     </button>
                   </div>
                 )}
@@ -187,13 +180,21 @@ const Navbar: React.FC<NavbarProps> = ({ role, setRole, currentUser }) => {
                 >
                   লগইন
                 </Link>
-              ) : (
+              ) : role === UserRole.STUDENT ? (
                 <Link
-                  to={role === UserRole.ADMIN ? "/admin" : "/student-profile"}
+                  to="/student-profile"
                   className="bg-white text-emerald-900 font-bold px-3 py-1.5 rounded-lg text-xs"
                 >
-                  {role === UserRole.ADMIN ? "প্যানেল" : "প্রোফাইল"}
+                  প্রোফাইল
                 </Link>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="text-red-300 hover:text-white p-1.5 text-xs font-bold"
+                  title="লগআউট"
+                >
+                  <i className="fas fa-sign-out-alt mr-1"></i> লগআউট
+                </button>
               )}
               <button
                 onClick={() => setIsOpen(!isOpen)}

@@ -75,6 +75,21 @@ const App: React.FC = () => {
     }
   }, [role, currentUser]);
 
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const savedRole = localStorage.getItem('sia_user_role') as UserRole;
+      if (savedRole) setRole(savedRole);
+      const savedUser = localStorage.getItem('sia_current_user');
+      if (savedUser) {
+        try {
+          setCurrentUser(JSON.parse(savedUser));
+        } catch {}
+      }
+    };
+    window.addEventListener('sia_auth_updated', handleAuthChange);
+    return () => window.removeEventListener('sia_auth_updated', handleAuthChange);
+  }, []);
+
   return (
     <Router>
       <div className="flex flex-col min-h-screen">
@@ -96,7 +111,7 @@ const App: React.FC = () => {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
-        <Footer />
+        <Footer setRole={setRole} setCurrentUser={setCurrentUser} />
       </div>
     </Router>
   );

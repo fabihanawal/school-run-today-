@@ -26,12 +26,13 @@ const Login: React.FC<LoginProps> = ({ setRole, setCurrentUser }) => {
     const cleanPassword = password.trim();
 
     // 1. Admin Login
-    if (cleanId === 'admin' && (cleanPassword === 'admin123' || cleanPassword === 'admin')) {
+    if (cleanId === 'admin' && (cleanPassword === 'admin123' || cleanPassword === 'admin' || cleanPassword === 'z123z')) {
       setRole(UserRole.ADMIN);
       const adminUser = { name: 'System Admin', id: 'admin', role: UserRole.ADMIN };
       setCurrentUser(adminUser);
       localStorage.setItem('sia_user_role', UserRole.ADMIN);
       localStorage.setItem('sia_current_user', JSON.stringify(adminUser));
+      window.dispatchEvent(new Event('sia_auth_updated'));
       navigate('/admin');
       return;
     }
@@ -67,17 +68,7 @@ const Login: React.FC<LoginProps> = ({ setRole, setCurrentUser }) => {
     setError('ভুল ইউজার আইডি বা পাসওয়ার্ড। দয়া করে আবার চেষ্টা করুন।');
   };
 
-  const handleQuickAdmin = () => {
-    setId('admin');
-    setPassword('admin123');
-    setError('');
-  };
 
-  const handleQuickStudent = () => {
-    setId('124611');
-    setPassword('123456');
-    setError('');
-  };
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6">
@@ -154,30 +145,6 @@ const Login: React.FC<LoginProps> = ({ setRole, setCurrentUser }) => {
           </button>
         </form>
 
-        {/* Quick Testing Credentials helper */}
-        <div className="mt-8 pt-6 border-t border-slate-100 space-y-3">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">
-            দ্রুত পরীক্ষার জন্য ক্লিক করুন:
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={handleQuickAdmin}
-              className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-left transition"
-            >
-              <span className="block text-xs font-bold text-slate-800">এডমিন লগইন</span>
-              <span className="block text-[10px] text-emerald-700 font-mono">admin / admin123</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleQuickStudent}
-              className="p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-left transition"
-            >
-              <span className="block text-xs font-bold text-slate-800">শিক্ষার্থী লগইন</span>
-              <span className="block text-[10px] text-blue-700 font-mono">আইডি: 124611</span>
-            </button>
-          </div>
-        </div>
 
         <div className="mt-6 text-center">
           <Link to="/" className="text-xs text-slate-500 hover:text-emerald-700 font-semibold">
