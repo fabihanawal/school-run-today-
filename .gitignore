@@ -1,0 +1,4 @@
+node_modules
+dist
+.env
+sia_db.json
