@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserRole } from '../types';
 import { useSchoolSettings } from '../src/lib/storage';
+import { logOutFirebase } from '../src/lib/firebase';
 
 interface NavbarProps {
   role: UserRole;
@@ -16,6 +17,7 @@ const Navbar: React.FC<NavbarProps> = ({ role, setRole, currentUser }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    logOutFirebase().catch(() => {});
     setRole(UserRole.GUEST);
     localStorage.removeItem('sia_user_role');
     localStorage.removeItem('sia_current_user');

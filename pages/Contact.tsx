@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSchoolSettings, useCollection, KEYS } from '../src/lib/storage';
 import { ContactMessage } from '../types';
+import { saveContactMessageToFirestore } from '../src/lib/firebaseSync';
 
 const Contact: React.FC = () => {
   const [settings] = useSchoolSettings();
@@ -36,6 +37,11 @@ const Contact: React.FC = () => {
     setMessages(updated);
     setSubmitted(true);
     setFormData({ name: '', phone: '', email: '', subject: '', message: '' });
+
+    // Save to Firebase Firestore
+    saveContactMessageToFirestore(newMessage).catch((err) => {
+      console.warn('Firebase message sync error (offline fallback kept):', err);
+    });
   };
 
   return (

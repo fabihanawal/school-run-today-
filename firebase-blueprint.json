@@ -1,0 +1,233 @@
+{
+  "entities": {
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "General settings and content for the school website",
+      "type": "object",
+      "properties": {
+        "schoolName": { "type": "string", "maxLength": 200 },
+        "tagline": { "type": "string", "maxLength": 300 },
+        "eiin": { "type": "string", "maxLength": 50 },
+        "estYear": { "type": "string", "maxLength": 20 },
+        "motto": { "type": "string", "maxLength": 300 },
+        "phone1": { "type": "string", "maxLength": 50 },
+        "phone2": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 100 },
+        "address": { "type": "string", "maxLength": 300 },
+        "officeHours": { "type": "string", "maxLength": 150 },
+        "googleMapUrl": { "type": "string", "maxLength": 1000 },
+        "facebookUrl": { "type": "string", "maxLength": 500 },
+        "youtubeUrl": { "type": "string", "maxLength": 500 },
+        "whatsapp": { "type": "string", "maxLength": 50 },
+        "principalName": { "type": "string", "maxLength": 150 },
+        "principalDesignation": { "type": "string", "maxLength": 150 },
+        "principalMsg": { "type": "string", "maxLength": 5000 },
+        "principalPhoto": { "type": "string", "maxLength": 2000000 },
+        "chairmanName": { "type": "string", "maxLength": 150 },
+        "chairmanDesignation": { "type": "string", "maxLength": 150 },
+        "chairmanMsg": { "type": "string", "maxLength": 5000 },
+        "chairmanPhoto": { "type": "string", "maxLength": 2000000 },
+        "bannerImage": { "type": "string", "maxLength": 2000000 },
+        "scrollingHeadline": { "type": "string", "maxLength": 1000 },
+        "aboutTitle": { "type": "string", "maxLength": 200 },
+        "aboutHistory": { "type": "string", "maxLength": 10000 },
+        "aboutMission": { "type": "string", "maxLength": 5000 },
+        "aboutVision": { "type": "string", "maxLength": 5000 },
+        "aboutImage": { "type": "string", "maxLength": 2000000 },
+        "admissionOpen": { "type": "boolean" },
+        "admissionDeadline": { "type": "string", "maxLength": 100 },
+        "currentSession": { "type": "string", "maxLength": 50 },
+        "homeLayout": { "type": "string", "enum": ["classic", "modern", "focus"] }
+      },
+      "required": ["schoolName", "phone1", "address"]
+    },
+    "Notice": {
+      "title": "Notice",
+      "description": "School notices and announcements",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 300 },
+        "date": { "type": "string", "maxLength": 50 },
+        "type": { "type": "string", "enum": ["ACADEMIC", "EXAM", "HOLIDAY", "ADMISSION", "GENERAL"] },
+        "content": { "type": "string", "maxLength": 10000 },
+        "pinned": { "type": "boolean" },
+        "attachmentName": { "type": "string", "maxLength": 300 }
+      },
+      "required": ["id", "title", "date", "type"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Academic course or department details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "category": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "icon": { "type": "string", "maxLength": 100 },
+        "colorClass": { "type": "string", "maxLength": 100 },
+        "borderClass": { "type": "string", "maxLength": 100 },
+        "ageGroup": { "type": "string", "maxLength": 100 },
+        "duration": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["id", "title", "category", "description"]
+    },
+    "StaffProfile": {
+      "title": "StaffProfile",
+      "description": "Teacher and staff member profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "designation": { "type": "string", "maxLength": 150 },
+        "subject": { "type": "string", "maxLength": 150 },
+        "mobile": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 100 },
+        "qualification": { "type": "string", "maxLength": 200 },
+        "type": { "type": "string", "enum": ["TEACHER", "STAFF"] },
+        "photo": { "type": "string", "maxLength": 2000000 },
+        "joinDate": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "name", "designation", "mobile", "type"]
+    },
+    "GalleryImage": {
+      "title": "GalleryImage",
+      "description": "Campus and event photos",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "url": { "type": "string", "maxLength": 2000000 },
+        "title": { "type": "string", "maxLength": 200 },
+        "category": { "type": "string", "enum": ["CAMPUS", "EVENTS", "SPORTS", "CLASSROOM"] },
+        "date": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "url", "title"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Student record with results and profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "class": { "type": "string", "maxLength": 50 },
+        "roll": { "type": "string", "maxLength": 50 },
+        "section": { "type": "string", "maxLength": 50 },
+        "guardianPhone": { "type": "string", "maxLength": 50 },
+        "bloodGroup": { "type": "string", "maxLength": 10 },
+        "studentPhoto": { "type": "string", "maxLength": 2000000 }
+      },
+      "required": ["id", "name", "class", "roll", "guardianPhone"]
+    },
+    "Quiz": {
+      "title": "Quiz",
+      "description": "Online exams and quiz questions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "subject": { "type": "string", "maxLength": 100 },
+        "targetClass": { "type": "string", "maxLength": 50 },
+        "durationMinutes": { "type": "number" },
+        "createdDate": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "title", "subject", "targetClass", "durationMinutes"]
+    },
+    "AdmissionSubmission": {
+      "title": "AdmissionSubmission",
+      "description": "Online admission applications submitted by prospective students",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "trackingNo": { "type": "string", "maxLength": 50 },
+        "name": { "type": "string", "maxLength": 150 },
+        "fatherName": { "type": "string", "maxLength": 150 },
+        "motherName": { "type": "string", "maxLength": 150 },
+        "birthDate": { "type": "string", "maxLength": 50 },
+        "targetClass": { "type": "string", "maxLength": 50 },
+        "gender": { "type": "string", "maxLength": 20 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "address": { "type": "string", "maxLength": 300 },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"] },
+        "appliedDate": { "type": "string", "maxLength": 50 },
+        "studentPhoto": { "type": "string", "maxLength": 2000000 },
+        "birthCertificate": { "type": "string", "maxLength": 2000000 },
+        "fatherPhoto": { "type": "string", "maxLength": 2000000 },
+        "motherPhoto": { "type": "string", "maxLength": 2000000 },
+        "remarks": { "type": "string", "maxLength": 500 }
+      },
+      "required": ["id", "trackingNo", "name", "fatherName", "motherName", "birthDate", "targetClass", "gender", "phone", "address", "status", "appliedDate"]
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "Contact inquiries from website visitors",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 100 },
+        "subject": { "type": "string", "maxLength": 200 },
+        "message": { "type": "string", "maxLength": 3000 },
+        "date": { "type": "string", "maxLength": 50 },
+        "read": { "type": "boolean" }
+      },
+      "required": ["id", "name", "phone", "message", "date"]
+    },
+    "AdminProfile": {
+      "title": "AdminProfile",
+      "description": "Administrator account identity for RBAC validation",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 150 },
+        "role": { "type": "string", "enum": ["ADMIN"] },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["uid", "email", "role"]
+    }
+  },
+  "firestore": {
+    "/settings/{settingId}": {
+      "schema": "SiteSettings",
+      "description": "School website general settings and content"
+    },
+    "/notices/{noticeId}": {
+      "schema": "Notice",
+      "description": "Public school notices"
+    },
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "Public academic courses"
+    },
+    "/staff/{staffId}": {
+      "schema": "StaffProfile",
+      "description": "Public staff directory"
+    },
+    "/gallery/{imageId}": {
+      "schema": "GalleryImage",
+      "description": "School photo gallery"
+    },
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Student records and results"
+    },
+    "/quizzes/{quizId}": {
+      "schema": "Quiz",
+      "description": "Online exams and question sets"
+    },
+    "/admissions/{admissionId}": {
+      "schema": "AdmissionSubmission",
+      "description": "Prospective student admission applications"
+    },
+    "/messages/{messageId}": {
+      "schema": "ContactMessage",
+      "description": "Contact form submissions"
+    },
+    "/admins/{adminId}": {
+      "schema": "AdminProfile",
+      "description": "Authorized administrators for database permissions"
+    }
+  }
+}

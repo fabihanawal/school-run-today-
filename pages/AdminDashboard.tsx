@@ -19,6 +19,7 @@ import {
   KEYS,
   notifyDataUpdated
 } from '../src/lib/storage';
+import { syncAllToFirestore } from '../src/lib/firebaseSync';
 import {
   DEFAULT_SETTINGS,
   DEFAULT_COURSES,
@@ -87,21 +88,41 @@ const AdminDashboard: React.FC = () => {
       messages
     };
     try {
-      const res = await fetch('api.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(db)
-      });
-      if (res.ok) {
-        const now = new Date().toLocaleString('bn-BD');
-        setLastSync(now);
-        localStorage.setItem('sia_last_sync', now);
-        setSyncStatus('সফলভাবে সার্ভারে ব্যাকআপ সংরক্ষিত হয়েছে!');
-      } else {
-        setSyncStatus('সার্ভার রেসপন্স দেয়নি, তবে ব্রাউজার ক্যাশে ডাটা সংরক্ষিত আছে।');
+      // 1. Persist directly to Firebase Firestore
+      await syncAllToFirestore(db);
+
+      // 2. Fallback / local API sync
+      try {
+        await fetch('api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(db)
+        });
+      } catch {}
+
+      const now = new Date().toLocaleString('bn-BD');
+      setLastSync(now);
+      localStorage.setItem('sia_last_sync', now);
+      setSyncStatus('সফলভাবে Firebase Firestore ক্লাউড সার্ভারে ব্যাকআপ সংরক্ষিত হয়েছে!');
+    } catch (err: any) {
+      console.warn('Firebase sync warning:', err);
+      try {
+        const res = await fetch('api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(db)
+        });
+        if (res.ok) {
+          const now = new Date().toLocaleString('bn-BD');
+          setLastSync(now);
+          localStorage.setItem('sia_last_sync', now);
+          setSyncStatus('সার্ভারে ব্যাকআপ সংরক্ষিত হয়েছে!');
+        } else {
+          setSyncStatus('সার্ভার রেসপন্স দেয়নি, তবে ব্রাউজার ক্যাশে ডাটা সংরক্ষিত আছে।');
+        }
+      } catch {
+        setSyncStatus('লোকাল মোডে সংরক্ষিত হয়েছে (সার্ভার সংযোগ পাওয়া যায়নি)।');
       }
-    } catch {
-      setSyncStatus('লোকাল মোডে সংরক্ষিত হয়েছে (সার্ভার সংযোগ পাওয়া যায়নি)।');
     } finally {
       setIsSyncing(false);
     }

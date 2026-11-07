@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSchoolSettings, useCollection, KEYS } from '../src/lib/storage';
 import { AdmissionSubmission } from '../types';
+import { saveAdmissionToFirestore } from '../src/lib/firebaseSync';
 
 const Admission: React.FC = () => {
   const [settings] = useSchoolSettings();
@@ -81,6 +82,12 @@ const Admission: React.FC = () => {
       const updated = [newSubmission, ...currentSubmissions];
       setAdmissions(updated);
       setSubmittedData(newSubmission);
+
+      // Save directly to Firebase Firestore
+      saveAdmissionToFirestore(newSubmission).catch((err) => {
+        console.warn('Firebase admission sync note:', err);
+      });
+
       setFormData({
         name: '',
         fatherName: '',

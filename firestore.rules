@@ -1,0 +1,180 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isBootstrappedAdmin() {
+      return isSignedIn() && request.auth.token.email == 'tayebkjl@gmail.com';
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        isBootstrappedAdmin() ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // --- Validation Helpers ---
+    function isValidSiteSettings(data) {
+      return data.schoolName is string && data.schoolName.size() <= 200 &&
+             data.phone1 is string && data.phone1.size() <= 50 &&
+             data.address is string && data.address.size() <= 300;
+    }
+
+    function isValidNotice(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.title is string && data.title.size() <= 300 &&
+             data.date is string && data.date.size() <= 50 &&
+             data.type in ['ACADEMIC', 'EXAM', 'HOLIDAY', 'ADMISSION', 'GENERAL'];
+    }
+
+    function isValidCourse(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.title is string && data.title.size() <= 200 &&
+             data.category is string && data.category.size() <= 100 &&
+             data.description is string && data.description.size() <= 2000;
+    }
+
+    function isValidStaff(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.name is string && data.name.size() <= 150 &&
+             data.designation is string && data.designation.size() <= 150 &&
+             data.mobile is string && data.mobile.size() <= 50 &&
+             data.type in ['TEACHER', 'STAFF'];
+    }
+
+    function isValidGallery(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.url is string && data.url.size() <= 2000000 &&
+             data.title is string && data.title.size() <= 200;
+    }
+
+    function isValidStudent(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.name is string && data.name.size() <= 150 &&
+             data.class is string && data.class.size() <= 50 &&
+             data.roll is string && data.roll.size() <= 50 &&
+             data.guardianPhone is string && data.guardianPhone.size() <= 50;
+    }
+
+    function isValidQuiz(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.title is string && data.title.size() <= 200 &&
+             data.subject is string && data.subject.size() <= 100 &&
+             data.targetClass is string && data.targetClass.size() <= 50 &&
+             data.durationMinutes is number;
+    }
+
+    function isValidAdmissionCreate(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.trackingNo is string && data.trackingNo.size() <= 50 &&
+             data.name is string && data.name.size() <= 150 &&
+             data.fatherName is string && data.fatherName.size() <= 150 &&
+             data.motherName is string && data.motherName.size() <= 150 &&
+             data.birthDate is string && data.birthDate.size() <= 50 &&
+             data.targetClass is string && data.targetClass.size() <= 50 &&
+             data.gender is string && data.gender.size() <= 20 &&
+             data.phone is string && data.phone.size() <= 50 &&
+             data.address is string && data.address.size() <= 300 &&
+             data.status == 'PENDING' &&
+             data.appliedDate is string && data.appliedDate.size() <= 50;
+    }
+
+    function isValidContactMessage(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.name is string && data.name.size() <= 150 &&
+             data.phone is string && data.phone.size() <= 50 &&
+             data.message is string && data.message.size() <= 3000 &&
+             data.date is string && data.date.size() <= 50;
+    }
+
+    // Global Deny Catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Admins
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && (request.auth.uid == adminId || isAdmin());
+      allow list: if isAdmin();
+      allow write: if isBootstrappedAdmin() || isAdmin();
+    }
+
+    // Site Settings
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidSiteSettings(incoming());
+    }
+
+    // Notices
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidId(noticeId) && isValidNotice(incoming());
+    }
+
+    // Courses
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidId(courseId) && isValidCourse(incoming());
+    }
+
+    // Staff
+    match /staff/{staffId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidId(staffId) && isValidStaff(incoming());
+    }
+
+    // Gallery
+    match /gallery/{imageId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidId(imageId) && isValidGallery(incoming());
+    }
+
+    // Students
+    match /students/{studentId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidId(studentId) && isValidStudent(incoming());
+    }
+
+    // Quizzes
+    match /quizzes/{quizId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidId(quizId) && isValidQuiz(incoming());
+    }
+
+    // Admission Submissions
+    match /admissions/{admissionId} {
+      allow get: if isAdmin() || (resource != null && resource.data.trackingNo is string);
+      allow list: if isAdmin();
+      allow create: if isValidId(admissionId) && isValidAdmissionCreate(incoming());
+      allow update, delete: if isAdmin();
+    }
+
+    // Contact Messages
+    match /messages/{messageId} {
+      allow create: if isValidId(messageId) && isValidContactMessage(incoming());
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Connection testing
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}

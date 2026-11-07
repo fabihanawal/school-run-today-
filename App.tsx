@@ -17,6 +17,9 @@ import AdminDashboard from './pages/AdminDashboard';
 import StudentProfilePage from './pages/StudentProfilePage';
 import { UserRole } from './types';
 import { initStorageIfEmpty, notifyDataUpdated } from './src/lib/storage';
+import { testConnection, auth } from './src/lib/firebase';
+import { syncFromFirestore } from './src/lib/firebaseSync';
+import { onAuthStateChanged } from 'firebase/auth';
 
 initStorageIfEmpty();
 
@@ -32,6 +35,27 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
+    // 1. Test Firebase connection
+    testConnection();
+
+    // 2. Sync from Firebase Firestore
+    syncFromFirestore();
+
+    // 3. Listen to Firebase Auth state
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        if (firebaseUser.email === 'tayebkjl@gmail.com') {
+          setRole(UserRole.ADMIN);
+          setCurrentUser((prev: any) => prev || {
+            name: firebaseUser.displayName || 'System Admin',
+            id: firebaseUser.uid,
+            email: firebaseUser.email,
+            role: UserRole.ADMIN
+          });
+        }
+      }
+    });
+
     const fetchServerData = async (retries = 3, delay = 1500) => {
       try {
         const response = await fetch('api.php', { cache: 'no-store' });
@@ -64,6 +88,8 @@ const App: React.FC = () => {
       }
     };
     fetchServerData();
+
+    return () => unsubscribeAuth();
   }, []);
 
   useEffect(() => {
